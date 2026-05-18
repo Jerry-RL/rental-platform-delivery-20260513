@@ -51,14 +51,76 @@ function login(phone, password) {
   });
 }
 
+function unwrapPageItems(payload) {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (payload.items && Array.isArray(payload.items)) return payload.items;
+  return [];
+}
+
 function searchVehicles(city, vehicleTypeId) {
   return request({
-    path: `/vehicles?city=${encodeURIComponent(city)}&vehicleTypeId=${encodeURIComponent(vehicleTypeId)}`,
+    path: `/vehicles?city=${encodeURIComponent(city)}&vehicleTypeId=${encodeURIComponent(vehicleTypeId)}&scope=rental&page=1&pageSize=50`,
     method: "GET",
-    mockData: [
-      { id: "v1", plateNumber: "沪A12345", vehicleTypeId: "SUV", city, dailyPrice: 320, status: "AVAILABLE" },
-      { id: "v2", plateNumber: "沪B77889", vehicleTypeId: "SUV", city, dailyPrice: 360, status: "AVAILABLE" }
-    ]
+    mockData: {
+      items: [
+        { id: "v1", plateNumber: "沪A12345", vehicleTypeId: "SUV", city, dailyPrice: 320, status: "AVAILABLE" },
+        { id: "v2", plateNumber: "沪B77889", vehicleTypeId: "SUV", city, dailyPrice: 360, status: "AVAILABLE" }
+      ],
+      total: 2,
+      page: 1,
+      pageSize: 50
+    }
+  }).then((result) => {
+    if (!result.ok) return result;
+    return Object.assign({}, result, { data: unwrapPageItems(result.data) });
+  });
+}
+
+function listAvailableDrivers(city) {
+  return request({
+    path: `/drivers?scope=rental&city=${encodeURIComponent(city)}&page=1&pageSize=50`,
+    method: "GET",
+    mockData: {
+      items: [
+        { id: "driver-sh-001", driverNo: "D-SH-001", name: "张师傅", city, rating: 4.9, status: "AVAILABLE" },
+        { id: "driver-bj-001", driverNo: "D-BJ-001", name: "王师傅", city: "Beijing", rating: 4.8, status: "AVAILABLE" }
+      ],
+      total: 2,
+      page: 1,
+      pageSize: 50
+    }
+  }).then((result) => {
+    if (!result.ok) return result;
+    return Object.assign({}, result, { data: unwrapPageItems(result.data) });
+  });
+}
+
+function listMyOrders(params) {
+  const page = (params && params.page) || 1;
+  const pageSize = (params && params.pageSize) || 10;
+  const status = (params && params.status) || "";
+  const query = `scope=mine&page=${page}&pageSize=${pageSize}` + (status ? `&status=${encodeURIComponent(status)}` : "");
+  return request({
+    path: `/orders?${query}`,
+    method: "GET",
+    mockData: {
+      items: [
+        {
+          id: "order_mock_001",
+          orderNo: "R20260518-0001",
+          plateNumber: "沪A12345",
+          city: "Shanghai",
+          status: "CONFIRMED",
+          estimatedFee: 320,
+          totalFee: 320,
+          pickupTime: new Date().toISOString()
+        }
+      ],
+      total: 1,
+      page: 1,
+      pageSize: 10
+    }
   });
 }
 
@@ -216,6 +278,8 @@ function getOrderById(orderId) {
 module.exports = {
   login,
   searchVehicles,
+  listAvailableDrivers,
+  listMyOrders,
   createOrder,
   createViolationTask,
   getGpsRealtime,

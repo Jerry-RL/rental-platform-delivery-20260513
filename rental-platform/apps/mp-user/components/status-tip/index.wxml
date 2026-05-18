@@ -1,0 +1,1 @@
+<view wx:if="{{message}}" class="status-tip">{{message}}</view>

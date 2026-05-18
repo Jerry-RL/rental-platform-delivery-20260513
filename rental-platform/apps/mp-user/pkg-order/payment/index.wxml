@@ -1,15 +1,28 @@
 <view class="container">
-  <view class="card">
-    <view class="title">支付确认</view>
-    <view>订单ID：{{orderId}}</view>
-    <view>支付单ID：{{paymentId}}</view>
-    <view>金额：¥{{amount}}</view>
+  <view class="page-header">
+    <text class="page-header__title">支付确认</text>
+    <text class="page-header__desc">确认订单信息并完成微信支付</text>
+  </view>
+
+  <section-card title="订单信息">
+    <view class="col">
+      <view class="muted">订单 ID</view>
+      <view>{{orderId}}</view>
+      <view class="muted">支付单 ID</view>
+      <view>{{paymentId}}</view>
+      <view class="vehicle-item__price" style="font-size: 36rpx;">¥{{amount}}</view>
+    </view>
+  </section-card>
+
+  <section-card title="操作">
     <picker mode="selector" range="{{cancelReasonLabels}}" value="{{cancelReasonIndex}}" bindchange="onCancelReasonChange">
       <view class="picker">取消原因：{{cancelReasonLabels[cancelReasonIndex]}}</view>
     </picker>
-    <button class="btn" type="primary" bindtap="handlePay" loading="{{paying}}">立即支付</button>
-    <button class="btn" bindtap="handleRetryPrepay" loading="{{prepayLoading}}">重试拉起支付参数</button>
-    <button class="btn" type="warn" bindtap="handleCancelOrder" loading="{{cancelLoading}}">取消订单</button>
-    <view class="status">{{message}}</view>
-  </view>
+    <view class="btn-group">
+      <button type="primary" bindtap="handlePay" loading="{{paying}}">立即支付</button>
+      <button bindtap="handleRetryPrepay" loading="{{prepayLoading}}">重试拉起支付</button>
+      <button type="warn" bindtap="handleCancelOrder" loading="{{cancelLoading}}">取消订单</button>
+    </view>
+    <status-tip message="{{message}}" />
+  </section-card>
 </view>

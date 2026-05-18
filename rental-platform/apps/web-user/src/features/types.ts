@@ -1,3 +1,21 @@
+export type PaginatedResult<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type Driver = {
+  id: string;
+  driverNo: string;
+  name: string;
+  phone: string;
+  licenseType: string;
+  city: string;
+  status: string;
+  rating: number;
+};
+
 export type Vehicle = {
   id: string;
   plateNumber: string;
@@ -5,15 +23,25 @@ export type Vehicle = {
   city: string;
   dailyPrice: number;
   status: string;
+  brand?: string;
+  model?: string;
+  imageUrl?: string;
 };
 
 export type Order = {
   id: string;
   orderNo: string;
+  userId?: string;
   status: string;
   vehicleId: string;
+  plateNumber?: string;
+  vehicleTypeId?: string;
+  city?: string;
+  pickupTime?: string;
+  returnTime?: string;
   estimatedFee: number;
   totalFee: number;
+  paidAmount?: number;
   settlementMode: "PREPAID" | "POSTPAID";
   serviceMode: "SELF_DRIVE" | "WITH_DRIVER";
   billingAccountId?: string;

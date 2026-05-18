@@ -1,5 +1,15 @@
 import { requestJson, requestJsonWithMock } from "../lib/api";
-import type { Bill, BillPayment, GpsRealtime, Order, ReminderSummary, Vehicle, ViolationTaskSummary } from "../features/types";
+import type {
+  Bill,
+  BillPayment,
+  GpsRealtime,
+  Order,
+  Driver,
+  PaginatedResult,
+  ReminderSummary,
+  Vehicle,
+  ViolationTaskSummary
+} from "../features/types";
 
 export const registerUser = (phone: string, password: string) =>
   requestJson<unknown>("/users/register", {
@@ -21,8 +31,38 @@ export const loginUser = (phone: string, password: string) =>
     body: { phone, password }
   });
 
-export const searchVehicles = (city: string, vehicleTypeId: string) =>
-  requestJson<Vehicle[]>(`/vehicles?city=${encodeURIComponent(city)}&vehicleTypeId=${encodeURIComponent(vehicleTypeId)}`);
+export const searchVehicles = async (city: string, vehicleTypeId: string) => {
+  const query = new URLSearchParams({
+    city,
+    vehicleTypeId,
+    scope: "rental",
+    page: "1",
+    pageSize: "50"
+  });
+  const result = await requestJson<PaginatedResult<Vehicle>>(`/vehicles?${query.toString()}`);
+  if (!result.ok || !result.data) {
+    return { ...result, data: null as Vehicle[] | null };
+  }
+  return { ...result, data: result.data.items };
+};
+
+export const listAvailableDrivers = async (city: string) => {
+  const query = new URLSearchParams({ scope: "rental", city, page: "1", pageSize: "50" });
+  const result = await requestJson<PaginatedResult<Driver>>(`/drivers?${query.toString()}`);
+  if (!result.ok || !result.data) {
+    return { ...result, data: null as Driver[] | null };
+  }
+  return { ...result, data: result.data.items };
+};
+
+export const listMyOrders = (params: { status?: string; orderNo?: string; page?: number; pageSize?: number }, headers: HeadersInit) => {
+  const query = new URLSearchParams({ scope: "mine", page: String(params.page ?? 1), pageSize: String(params.pageSize ?? 10) });
+  if (params.status) query.set("status", params.status);
+  if (params.orderNo) query.set("orderNo", params.orderNo);
+  return requestJson<PaginatedResult<Order>>(`/orders?${query.toString()}`, { headers });
+};
+
+export const getOrderById = (orderId: string, headers: HeadersInit) => requestJson<Order>(`/orders/${orderId}`, { headers });
 
 export const createOrder = (
   payload: {

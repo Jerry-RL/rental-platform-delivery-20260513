@@ -2,6 +2,7 @@
   "pages": [
     "pages/login/index",
     "pages/vehicles/index",
+    "pages/orders/index",
     "pages/violation/index",
     "pages/gps/index",
     "pages/reminder/index"
@@ -33,6 +34,10 @@
         "text": "租车"
       },
       {
+        "pagePath": "pages/orders/index",
+        "text": "订单"
+      },
+      {
         "pagePath": "pages/violation/index",
         "text": "违章"
       },
@@ -54,6 +59,12 @@
   "requiredPrivateInfos": [
     "getLocation"
   ],
+  "usingComponents": {
+    "section-card": "/components/section-card/index",
+    "json-block": "/components/json-block/index",
+    "empty-state": "/components/empty-state/index",
+    "status-tip": "/components/status-tip/index"
+  },
   "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json",
   "style": "v2"

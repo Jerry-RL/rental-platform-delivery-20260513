@@ -1,21 +1,23 @@
 <view class="container">
-  <view class="card">
-    <view class="title">GPS实时与轨迹</view>
-    <input class="input" placeholder="车辆ID" value="{{vehicleId}}" bindinput="onVehicleInput" />
-    <view class="row">
-      <button class="btn" type="primary" bindtap="handleRealtime">实时位置</button>
-      <button class="btn" bindtap="handleTrack">历史轨迹</button>
+  <view class="page-header">
+    <text class="page-header__title">GPS</text>
+    <text class="page-header__desc">查看车辆实时位置与历史轨迹</text>
+  </view>
+
+  <section-card title="查询" desc="输入车辆 ID 后选择查询类型">
+    <input class="input" placeholder="车辆 ID" value="{{vehicleId}}" bindinput="onVehicleInput" />
+    <view class="btn-group btn-group--row">
+      <button type="primary" bindtap="handleRealtime">实时位置</button>
+      <button bindtap="handleTrack">24h 轨迹</button>
     </view>
-    <view class="status">{{message}}</view>
-  </view>
+    <status-tip message="{{message}}" />
+  </section-card>
 
-  <view class="card">
-    <view class="sub-title">实时数据</view>
-    <text class="json">{{realtimeJson}}</text>
-  </view>
+  <section-card title="实时数据">
+    <json-block content="{{realtimeJson}}" emptyText="点击「实时位置」获取数据" />
+  </section-card>
 
-  <view class="card">
-    <view class="sub-title">轨迹数据</view>
-    <text class="json">{{trackJson}}</text>
-  </view>
+  <section-card title="轨迹数据">
+    <json-block content="{{trackJson}}" emptyText="点击「24h 轨迹」获取数据" />
+  </section-card>
 </view>

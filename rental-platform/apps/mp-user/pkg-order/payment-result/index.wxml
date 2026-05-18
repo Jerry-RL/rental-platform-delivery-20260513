@@ -1,13 +1,20 @@
 <view class="container">
-  <view class="card">
-    <view class="title">支付结果</view>
-    <view>订单ID：{{orderId}}</view>
-    <view>支付单ID：{{paymentId}}</view>
-    <view class="muted">轮询次数：{{pollCount}} / {{maxPollCount}}</view>
-    <view class="status">状态：{{status}}</view>
-    <text class="json">{{resultJson}}</text>
-    <button class="btn" bindtap="handleRefreshStatus">手动刷新支付状态</button>
-    <button wx:if="{{orderId}}" class="btn" bindtap="handleViewOrderStatus">查看订单状态</button>
-    <button class="btn" type="primary" bindtap="handleBackVehicles">返回租车页</button>
+  <view class="page-header">
+    <text class="page-header__title">支付结果</text>
+    <text class="page-header__desc">轮询中，请稍候…</text>
   </view>
+
+  <section-card title="支付状态" desc="轮询 {{pollCount}} / {{maxPollCount}}">
+    <view class="col">
+      <view><text class="muted">订单 </text>{{orderId}}</view>
+      <view><text class="muted">支付单 </text>{{paymentId}}</view>
+      <view class="vehicle-item__price">{{status}}</view>
+    </view>
+    <json-block content="{{resultJson}}" emptyText="等待支付结果…" />
+    <view class="btn-group">
+      <button bindtap="handleRefreshStatus">手动刷新</button>
+      <button wx:if="{{orderId}}" bindtap="handleViewOrderStatus">查看订单</button>
+      <button type="primary" bindtap="handleBackVehicles">返回租车</button>
+    </view>
+  </section-card>
 </view>

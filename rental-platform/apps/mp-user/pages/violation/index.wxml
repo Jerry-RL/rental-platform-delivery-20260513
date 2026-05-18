@@ -1,13 +1,16 @@
 <view class="container">
-  <view class="card">
-    <view class="title">批量违章查询</view>
-    <textarea class="input" placeholder="每行一个车牌或车辆ID" value="{{vehiclesText}}" bindinput="onVehiclesInput" />
-    <button class="btn" type="primary" bindtap="handleCreateTask">创建批量任务</button>
-    <view class="status">{{message}}</view>
+  <view class="page-header">
+    <text class="page-header__title">违章查询</text>
+    <text class="page-header__desc">批量创建违章查询任务</text>
   </view>
 
-  <view class="card">
-    <view class="sub-title">任务结果</view>
-    <text class="json">{{taskJson}}</text>
-  </view>
+  <section-card title="批量任务" desc="每行一个车牌或车辆 ID">
+    <textarea class="input" style="min-height: 180rpx;" placeholder="沪A12345&#10;vehicle-001" value="{{vehiclesText}}" bindinput="onVehiclesInput" />
+    <button class="btn" type="primary" bindtap="handleCreateTask">创建批量任务</button>
+    <status-tip message="{{message}}" />
+  </section-card>
+
+  <section-card title="任务结果">
+    <json-block content="{{taskJson}}" emptyText="提交任务后显示结果" />
+  </section-card>
 </view>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import {
   confirmBill,
@@ -8,10 +8,11 @@ import {
   getBillById,
   loginUser,
   registerUser,
+  listAvailableDrivers,
   searchVehicles,
   sendBillPaymentCallback
 } from "../services/userService";
-import type { Bill, BillPayment, Order, Vehicle } from "../features/types";
+import type { Bill, BillPayment, Driver, Order, Vehicle } from "../features/types";
 
 type SetMessage = (message: string) => void;
 
@@ -26,7 +27,8 @@ export function useUserBookingFlow(setMessage: SetMessage) {
   const [serviceMode, setServiceMode] = useState<"SELF_DRIVE" | "WITH_DRIVER">("SELF_DRIVE");
   const [accountType, setAccountType] = useState<"C" | "B" | "G">("B");
   const [billingAccountId, setBillingAccountId] = useState("org-bg-001");
-  const [driverId, setDriverId] = useState("driver-sh-001");
+  const [driverId, setDriverId] = useState("");
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [order, setOrder] = useState<Order | null>(null);
   const [bill, setBill] = useState<Bill | null>(null);
   const [billPayment, setBillPayment] = useState<BillPayment | null>(null);
@@ -48,15 +50,45 @@ export function useUserBookingFlow(setMessage: SetMessage) {
     setMessage(result.ok ? "注册成功，请登录" : (result.error ?? "注册失败"));
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (): Promise<boolean> => {
     const result = await loginUser(phone, password);
     if (!result.ok || !result.data) {
       setMessage(result.error ?? "登录失败");
-      return;
+      return false;
     }
     setToken(result.data.accessToken);
     setMessage("登录成功");
+    return true;
   };
+
+  const handleLogout = () => {
+    setToken("");
+    setOrder(null);
+    setBill(null);
+    setBillPayment(null);
+    setVehicles([]);
+    setMessage("已退出登录");
+  };
+
+  const loadDrivers = useCallback(async () => {
+    if (serviceMode !== "WITH_DRIVER") {
+      setDrivers([]);
+      return;
+    }
+    const result = await listAvailableDrivers(city);
+    if (!result.ok || !result.data) {
+      setDrivers([]);
+      return;
+    }
+    setDrivers(result.data);
+    if (result.data.length > 0) {
+      setDriverId((prev) => (result.data!.some((d) => d.id === prev) ? prev : result.data![0].id));
+    }
+  }, [city, serviceMode]);
+
+  useEffect(() => {
+    void loadDrivers();
+  }, [loadDrivers]);
 
   const handleSearchVehicles = async () => {
     const result = await searchVehicles(city, vehicleTypeId);
@@ -64,11 +96,19 @@ export function useUserBookingFlow(setMessage: SetMessage) {
       setMessage(result.error ?? "查询车辆失败");
       return;
     }
-    setVehicles(result.data);
-    setMessage(`查询到 ${result.data.length} 台可租车辆`);
+    const items = result.data;
+    setVehicles(items);
+    setMessage(`查询到 ${items.length} 台可租车辆`);
+    if (serviceMode === "WITH_DRIVER") {
+      void loadDrivers();
+    }
   };
 
   const handleCreateOrder = async (selectedVehicleTypeId: string) => {
+    if (serviceMode === "WITH_DRIVER" && !driverId) {
+      setMessage("请选择司机");
+      return;
+    }
     const payload = {
       vehicleTypeId: selectedVehicleTypeId,
       pickupStoreId: "store-sh-001",
@@ -190,6 +230,7 @@ export function useUserBookingFlow(setMessage: SetMessage) {
     accountType,
     billingAccountId,
     driverId,
+    drivers,
     order,
     bill,
     billPayment,
@@ -205,6 +246,7 @@ export function useUserBookingFlow(setMessage: SetMessage) {
     setDriverId,
     handleRegister,
     handleLogin,
+    handleLogout,
     handleSearchVehicles,
     handleCreateOrder,
     handleCreateBill,

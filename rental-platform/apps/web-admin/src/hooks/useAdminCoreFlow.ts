@@ -16,14 +16,21 @@ export function useAdminCoreFlow(setMessage: SetMessage) {
     ? { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
     : { "Content-Type": "application/json" };
 
-  const handleLogin = async () => {
+  const handleLogin = async (): Promise<boolean> => {
     const result = await loginAdmin(phone, password);
     if (!result.ok || !result.data) {
       setMessage(result.error ?? "登录失败");
-      return;
+      return false;
     }
     setToken(result.data.accessToken);
     setMessage("管理员调试登录成功");
+    return true;
+  };
+
+  const handleLogout = () => {
+    setToken("");
+    setOrderJson("{}");
+    setMessage("已退出登录");
   };
 
   const handleQueryOrder = async () => {
@@ -82,6 +89,7 @@ export function useAdminCoreFlow(setMessage: SetMessage) {
     setBillId,
     setTxnNo,
     handleLogin,
+    handleLogout,
     handleQueryOrder,
     handlePaymentCallback,
     handlePickup,

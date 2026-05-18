@@ -3,8 +3,10 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { fail, ok } from "./common/response.js";
+import { driverRouter } from "./modules/driver/router.js";
 import { financeRouter } from "./modules/finance/router.js";
 import { orderRouter } from "./modules/order/router.js";
+import { personnelRouter } from "./modules/personnel/router.js";
 import { paymentRouter, refundRouter } from "./modules/payment/router.js";
 import { userRouter } from "./modules/user/router.js";
 import { vehicleRouter } from "./modules/vehicle/router.js";
@@ -22,6 +24,8 @@ app.get("/health", (req, res) => {
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/vehicles", vehicleRouter);
+app.use("/api/v1/drivers", driverRouter);
+app.use("/api/v1/personnel", personnelRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/payments", paymentRouter);
 app.use("/api/v1/refunds", refundRouter);

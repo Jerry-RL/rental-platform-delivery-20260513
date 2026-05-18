@@ -3,8 +3,9 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../../common/auth.js";
 import { fail, ok } from "../../common/response.js";
-import { orders, users, vehicles } from "../../common/store.js";
-import type { Order, OrderStatus } from "../../common/types.js";
+import { drivers, orders, users, vehicles } from "../../common/store.js";
+import { paginate, parsePageQuery } from "../../common/pagination.js";
+import type { Order, OrderListItem, OrderStatus } from "../../common/types.js";
 
 const createOrderSchema = z.object({
   vehicleTypeId: z.string().min(1),
@@ -19,6 +20,15 @@ const createOrderSchema = z.object({
   accountType: z.enum(["C", "B", "G"]).optional(),
   driverId: z.string().optional()
 });
+
+function releaseDriver(driverId?: string) {
+  if (!driverId) return;
+  const driver = drivers.get(driverId);
+  if (driver && driver.status === "ON_DUTY") {
+    driver.status = "AVAILABLE";
+    drivers.set(driver.id, driver);
+  }
+}
 
 function canTransition(from: OrderStatus, to: OrderStatus): boolean {
   const allowedMap: Record<OrderStatus, OrderStatus[]> = {
@@ -36,7 +46,47 @@ function canTransition(from: OrderStatus, to: OrderStatus): boolean {
   return allowedMap[from].includes(to);
 }
 
+function toOrderListItem(order: Order): OrderListItem {
+  const vehicle = vehicles.get(order.vehicleId);
+  return {
+    ...order,
+    plateNumber: vehicle?.plateNumber ?? "-",
+    vehicleTypeId: vehicle?.vehicleTypeId ?? "-",
+    city: vehicle?.city ?? "-"
+  };
+}
+
 export const orderRouter = Router();
+
+orderRouter.get("/", requireAuth, (req, res) => {
+  const auth = (req as typeof req & { auth: { userId: string } }).auth;
+  const scope = String(req.query.scope || "mine").trim();
+  const status = String(req.query.status || "").trim();
+  const orderNo = String(req.query.orderNo || "").trim().toLowerCase();
+  const userId = String(req.query.userId || "").trim();
+  const { page, pageSize } = parsePageQuery(req.query as Record<string, unknown>);
+
+  let list = [...orders.values()];
+
+  if (scope !== "all") {
+    list = list.filter((order) => order.userId === auth.userId);
+  } else if (userId.length > 0) {
+    list = list.filter((order) => order.userId === userId);
+  }
+
+  if (status.length > 0) {
+    list = list.filter((order) => order.status === status);
+  }
+
+  if (orderNo.length > 0) {
+    list = list.filter((order) => order.orderNo.toLowerCase().includes(orderNo));
+  }
+
+  list.sort((a, b) => b.pickupTime.localeCompare(a.pickupTime));
+
+  const items = list.map(toOrderListItem);
+  ok(req, res, paginate(items, page, pageSize));
+});
 
 orderRouter.post("/", requireAuth, (req, res) => {
   const parsed = createOrderSchema.safeParse(req.body);
@@ -72,6 +122,24 @@ orderRouter.post("/", requireAuth, (req, res) => {
   if (parsed.data.serviceMode === "WITH_DRIVER" && !parsed.data.driverId) {
     fail(req, res, "driverId is required for WITH_DRIVER", 422);
     return;
+  }
+
+  if (parsed.data.serviceMode === "WITH_DRIVER" && parsed.data.driverId) {
+    const driver = drivers.get(parsed.data.driverId);
+    if (!driver) {
+      fail(req, res, "Driver not found", 404);
+      return;
+    }
+    if (driver.status !== "AVAILABLE" && driver.status !== "ON_DUTY") {
+      fail(req, res, "Driver is not available", 409);
+      return;
+    }
+    if (parsed.data.city && driver.city.toLowerCase() !== parsed.data.city.toLowerCase()) {
+      fail(req, res, "Driver city does not match order city", 422);
+      return;
+    }
+    driver.status = "ON_DUTY";
+    drivers.set(driver.id, driver);
   }
 
   if (parsed.data.accountType && parsed.data.accountType === "C" && parsed.data.settlementMode === "POSTPAID") {
@@ -139,6 +207,7 @@ orderRouter.put("/:orderId/cancel", requireAuth, (req, res) => {
     vehicle.status = "AVAILABLE";
     vehicles.set(vehicle.id, vehicle);
   }
+  releaseDriver(order.driverId);
   orders.set(order.id, order);
 
   ok(req, res, order);
@@ -195,6 +264,7 @@ orderRouter.put("/:orderId/return", requireAuth, (req, res) => {
     vehicle.status = "AVAILABLE";
     vehicles.set(vehicle.id, vehicle);
   }
+  releaseDriver(order.driverId);
   orders.set(order.id, order);
 
   ok(req, res, order);

@@ -1,0 +1,39 @@
+.order-item {
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #f1f5f9;
+}
+
+.order-item:last-child {
+  border-bottom: none;
+}
+
+.order-item__main {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.order-item__no {
+  font-weight: 600;
+  font-size: 28rpx;
+}
+
+.order-item__plate {
+  color: #64748b;
+  font-size: 26rpx;
+}
+
+.order-item__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-item__status {
+  font-size: 24rpx;
+  color: #1677ff;
+}
+
+.order-item__pay {
+  margin-top: 12rpx;
+}

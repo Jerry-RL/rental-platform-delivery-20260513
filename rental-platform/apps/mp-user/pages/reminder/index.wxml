@@ -1,16 +1,18 @@
 <view class="container">
-  <view class="card">
-    <view class="title">到期提醒摘要</view>
+  <view class="page-header">
+    <text class="page-header__title">提醒</text>
+    <text class="page-header__desc">保险/年检到期摘要与地图选点</text>
+  </view>
+
+  <section-card title="到期摘要" desc="查看保险与年检待办数量">
     <button class="btn" type="primary" bindtap="handleLoadSummary">读取提醒摘要</button>
-    <text class="json">{{summaryJson}}</text>
-  </view>
+    <json-block content="{{summaryJson}}" emptyText="点击上方按钮加载" />
+  </section-card>
 
-  <view class="card">
-    <view class="title">地图起点选择</view>
-    <view class="sub-title">地图 Key：{{mapKey}}</view>
+  <section-card title="地图选点" desc="Key：{{mapKey}}">
     <button class="btn" bindtap="handleChooseLocation">选择起点位置</button>
-    <text class="json">{{locationJson}}</text>
-  </view>
+    <json-block content="{{locationJson}}" emptyText="选点后显示坐标信息" />
+  </section-card>
 
-  <view class="status">{{message}}</view>
+  <status-tip message="{{message}}" />
 </view>

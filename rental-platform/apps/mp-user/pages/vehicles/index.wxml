@@ -1,38 +1,56 @@
 <view class="container">
-  <view class="card">
-    <view class="title">车辆查询与下单</view>
-    <view class="row">
-      <input class="input" placeholder="城市，例如 Shanghai" value="{{city}}" bindinput="onCityInput" />
-      <input class="input" placeholder="车型，例如 SUV" value="{{vehicleTypeId}}" bindinput="onVehicleTypeInput" />
-    </view>
-    <view class="row">
-      <picker mode="selector" range="{{settlementModes}}" bindchange="onSettlementChange" value="{{settlementIndex}}">
-        <view class="picker">结算方式：{{settlementModes[settlementIndex]}}</view>
-      </picker>
-      <picker mode="selector" range="{{serviceModes}}" bindchange="onServiceChange" value="{{serviceIndex}}">
-        <view class="picker">服务方式：{{serviceModes[serviceIndex]}}</view>
-      </picker>
-    </view>
-    <button class="btn" type="primary" bindtap="handleSearch">查询车辆</button>
+  <view class="page-header">
+    <text class="page-header__title">租车</text>
+    <text class="page-header__desc">搜索可租车辆并创建订单</text>
   </view>
 
-  <view class="card">
-    <view class="sub-title">可租车辆</view>
+  <section-card title="搜索条件" desc="按城市与车型筛选">
+    <view class="col">
+      <view class="row">
+        <input class="input" placeholder="城市，如 Shanghai" value="{{city}}" bindinput="onCityInput" />
+        <input class="input" placeholder="车型，如 SUV" value="{{vehicleTypeId}}" bindinput="onVehicleTypeInput" />
+      </view>
+      <view class="row row--wrap">
+        <picker class="picker" mode="selector" range="{{settlementModes}}" bindchange="onSettlementChange" value="{{settlementIndex}}">
+          <view>结算：{{settlementModes[settlementIndex]}}</view>
+        </picker>
+        <picker class="picker" mode="selector" range="{{serviceModes}}" bindchange="onServiceChange" value="{{serviceIndex}}">
+          <view>服务：{{serviceModes[serviceIndex]}}</view>
+        </picker>
+      </view>
+      <picker
+        wx:if="{{serviceModes[serviceIndex] === 'WITH_DRIVER'}}"
+        class="picker"
+        mode="selector"
+        range="{{drivers}}"
+        range-key="name"
+        value="{{driverIndex}}"
+        bindchange="onDriverChange"
+      >
+        <view>司机：{{drivers.length ? drivers[driverIndex].name : '暂无可用司机'}}</view>
+      </picker>
+      <button class="btn" type="primary" bindtap="handleSearch">查询车辆</button>
+    </view>
+  </section-card>
+
+  <section-card title="可租车辆" desc="{{vehicles.length ? '共 ' + vehicles.length + ' 辆' : '请先查询'}}">
     <block wx:if="{{vehicles.length}}">
-      <block wx:for="{{vehicles}}" wx:key="id">
-        <view class="card">
-          <view>{{item.plateNumber}} · {{item.vehicleTypeId}} · ¥{{item.dailyPrice}}/天</view>
-          <button class="btn" size="mini" type="primary" data-vehicletypeid="{{item.vehicleTypeId}}" bindtap="handleCreateOrder">下单</button>
+      <view wx:for="{{vehicles}}" wx:key="id" class="vehicle-item">
+        <view class="vehicle-item__info">
+          <text>{{item.plateNumber}} · {{item.vehicleTypeId}}</text>
+          <text class="vehicle-item__price"> ¥{{item.dailyPrice}}/天</text>
         </view>
-      </block>
+        <button size="mini" type="primary" data-vehicletypeid="{{item.vehicleTypeId}}" bindtap="handleCreateOrder">下单</button>
+      </view>
     </block>
-    <view wx:else class="muted">暂无车辆数据</view>
-  </view>
+    <empty-state wx:else text="暂无车辆，请调整搜索条件" icon="🚗" />
+  </section-card>
 
-  <view class="card">
-    <view class="sub-title">订单结果</view>
-    <text class="json">{{orderJson}}</text>
-    <button wx:if="{{latestOrderId}}" class="btn" bindtap="handleGoPay">去支付（订单 {{latestOrderId}}）</button>
-    <view class="status">{{message}}</view>
-  </view>
+  <section-card title="订单结果" desc="创建成功后可前往支付">
+    <json-block content="{{orderJson}}" emptyText="尚未创建订单" />
+    <view class="btn-group" wx:if="{{latestOrderId}}">
+      <button type="primary" bindtap="handleGoPay">去支付（{{latestOrderId}}）</button>
+    </view>
+    <status-tip message="{{message}}" />
+  </section-card>
 </view>

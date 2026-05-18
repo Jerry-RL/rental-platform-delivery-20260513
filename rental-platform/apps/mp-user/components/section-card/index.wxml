@@ -1,0 +1,9 @@
+<view class="section-card">
+  <view wx:if="{{title}}" class="section-card__header">
+    <text class="section-card__title">{{title}}</text>
+    <text wx:if="{{desc}}" class="section-card__desc">{{desc}}</text>
+  </view>
+  <view class="section-card__body">
+    <slot />
+  </view>
+</view>

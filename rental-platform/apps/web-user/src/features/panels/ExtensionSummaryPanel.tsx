@@ -13,7 +13,7 @@ export function ExtensionSummaryPanel(props: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>5) 扩展能力：提醒与违章任务</CardTitle>
+        <CardTitle>提醒与违章任务</CardTitle>
         <CardDescription>支持查看提醒摘要与最近批量违章任务状态。</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

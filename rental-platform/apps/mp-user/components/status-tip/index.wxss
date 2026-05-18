@@ -1,0 +1,9 @@
+.status-tip {
+  margin-top: 16rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(22, 119, 255, 0.08);
+  border-radius: 12rpx;
+  color: #1677ff;
+  font-size: 26rpx;
+  line-height: 1.5;
+}

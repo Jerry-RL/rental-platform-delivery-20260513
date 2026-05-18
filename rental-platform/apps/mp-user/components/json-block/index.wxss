@@ -1,0 +1,27 @@
+.json-block {
+  background: #0f172a;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  max-height: 400rpx;
+  overflow: hidden;
+}
+
+.json-block__text {
+  display: block;
+  color: #e2e8f0;
+  font-size: 22rpx;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.json-block--empty {
+  background: #f1f5f9;
+  max-height: none;
+}
+
+.json-block__empty {
+  color: #94a3b8;
+  font-size: 26rpx;
+  text-align: center;
+}

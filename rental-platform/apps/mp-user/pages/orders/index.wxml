@@ -1,0 +1,54 @@
+<view class="container">
+  <view class="page-header">
+    <text class="page-header__title">我的订单</text>
+    <text class="page-header__desc">查看租车订单与支付状态</text>
+  </view>
+
+  <section-card title="筛选">
+    <picker mode="selector" range="{{statusOptions}}" value="{{statusIndex}}" bindchange="onStatusChange">
+      <view class="picker">{{statusOptions[statusIndex]}}</view>
+    </picker>
+    <view class="btn-group btn-group--row">
+      <button size="mini" bindtap="onRefresh">刷新</button>
+      <button size="mini" bindtap="onPrevPage" disabled="{{page <= 1}}">上一页</button>
+      <button size="mini" bindtap="onNextPage">下一页</button>
+    </view>
+    <status-tip message="{{message}}" />
+  </section-card>
+
+  <section-card title="订单列表" desc="共 {{total}} 条">
+    <block wx:if="{{orders.length}}">
+      <view
+        wx:for="{{orders}}"
+        wx:key="id"
+        class="order-item"
+        data-order="{{item}}"
+        bindtap="onSelectOrder"
+      >
+        <view class="order-item__main">
+          <text class="order-item__no">{{item.orderNo}}</text>
+          <text class="order-item__plate">{{item.plateNumber || '-'}}</text>
+        </view>
+        <view class="order-item__meta">
+          <text class="order-item__status">{{item.statusLabel}}</text>
+          <text class="vehicle-item__price">¥{{item.totalFee || item.estimatedFee}}</text>
+        </view>
+        <button
+          wx:if="{{item.status === 'PENDING_PAYMENT' || item.status === 'CONFIRMED'}}"
+          class="order-item__pay"
+          size="mini"
+          type="primary"
+          catchtap="onGoPay"
+          data-id="{{item.id}}"
+        >
+          去支付
+        </button>
+      </view>
+    </block>
+    <empty-state wx:else text="暂无订单" icon="📋" />
+  </section-card>
+
+  <section-card wx:if="{{selectedJson}}" title="订单详情">
+    <json-block content="{{selectedJson}}" />
+  </section-card>
+</view>

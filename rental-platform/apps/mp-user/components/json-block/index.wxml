@@ -1,0 +1,6 @@
+<view wx:if="{{content}}" class="json-block">
+  <text class="json-block__text" selectable>{{content}}</text>
+</view>
+<view wx:else class="json-block json-block--empty">
+  <text class="json-block__empty">{{emptyText}}</text>
+</view>

@@ -3,6 +3,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { signToken } from "../../common/auth.js";
 import { ok, fail } from "../../common/response.js";
+import { userListRouter } from "./list-routes.js";
 import { users, usersByPhone } from "../../common/store.js";
 
 const registerSchema = z.object({
@@ -19,6 +20,8 @@ const loginSchema = z.object({
 });
 
 export const userRouter = Router();
+
+userRouter.use("/", userListRouter);
 
 userRouter.post("/register", (req, res) => {
   const parsed = registerSchema.safeParse(req.body);
@@ -38,7 +41,9 @@ userRouter.post("/register", (req, res) => {
     phone: parsed.data.phone,
     password: parsed.data.password,
     realName: parsed.data.realName,
-    licenseValid: parsed.data.licenseValid
+    licenseValid: parsed.data.licenseValid,
+    status: "ACTIVE",
+    registeredAt: new Date().toISOString()
   });
   usersByPhone.set(parsed.data.phone, id);
 

@@ -1,10 +1,15 @@
 <view class="container">
-  <view class="card">
-    <view class="title">订单状态</view>
-    <view>订单ID：{{orderId}}</view>
-    <view class="status">状态：{{status}}</view>
-    <text class="json">{{orderJson}}</text>
-    <button class="btn" bindtap="handleRefresh">刷新订单状态</button>
-    <button class="btn" type="primary" bindtap="handleBackVehicles">返回租车页</button>
+  <view class="page-header">
+    <text class="page-header__title">订单详情</text>
+    <text class="page-header__desc">订单 ID：{{orderId}}</text>
   </view>
+
+  <section-card title="当前状态">
+    <view class="vehicle-item__price" style="margin-bottom: 16rpx;">{{status}}</view>
+    <json-block content="{{orderJson}}" emptyText="加载中…" />
+    <view class="btn-group">
+      <button bindtap="handleRefresh">刷新状态</button>
+      <button type="primary" bindtap="handleBackVehicles">返回租车</button>
+    </view>
+  </section-card>
 </view>

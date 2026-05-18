@@ -6,13 +6,84 @@ export type ApiResponse<T> = {
   requestId: string;
 };
 
+export type UserStatus = "ACTIVE" | "SUSPENDED";
+
 export type User = {
   id: string;
   phone: string;
   password: string;
   realName: string;
   licenseValid: boolean;
+  status: UserStatus;
+  registeredAt: string;
 };
+
+export type UserListItem = {
+  id: string;
+  phone: string;
+  realName: string;
+  licenseValid: boolean;
+  status: UserStatus;
+  registeredAt: string;
+  orderCount: number;
+};
+
+export type EnterpriseAccountType = "B" | "G";
+export type EnterpriseAccountStatus = "ACTIVE" | "SUSPENDED";
+
+export type EnterpriseAccount = {
+  id: string;
+  accountNo: string;
+  orgName: string;
+  accountType: EnterpriseAccountType;
+  contactName: string;
+  contactPhone: string;
+  creditLimit: number;
+  status: EnterpriseAccountStatus;
+  createdAt: string;
+};
+
+export type DriverStatus = "AVAILABLE" | "ON_DUTY" | "OFF_DUTY" | "SUSPENDED";
+
+export type Driver = {
+  id: string;
+  driverNo: string;
+  name: string;
+  phone: string;
+  licenseNo: string;
+  licenseType: string;
+  city: string;
+  status: DriverStatus;
+  rating: number;
+  joinedAt: string;
+  licenseImageUrl: string;
+  licenseImages: string[];
+  licenseExpiryDate: string;
+  remindBeforeDays: number;
+  updatedAt: string;
+};
+
+export type DriverDetail = Driver & {
+  licenseReminder: VehicleReminderLevel;
+};
+
+export type PersonnelRole = "ADMIN" | "OPERATOR" | "FINANCE" | "CUSTOMER_SERVICE";
+export type PersonnelStatus = "ACTIVE" | "INACTIVE";
+
+export type Personnel = {
+  id: string;
+  employeeNo: string;
+  name: string;
+  phone: string;
+  email?: string;
+  role: PersonnelRole;
+  department: string;
+  status: PersonnelStatus;
+  hiredAt: string;
+};
+
+export type VehicleStatus = "AVAILABLE" | "IN_USE" | "MAINTENANCE";
+export type VehicleReminderLevel = "OK" | "EXPIRING_SOON" | "EXPIRED" | "UNKNOWN";
 
 export type Vehicle = {
   id: string;
@@ -20,7 +91,23 @@ export type Vehicle = {
   vehicleTypeId: string;
   city: string;
   dailyPrice: number;
-  status: "AVAILABLE" | "IN_USE" | "MAINTENANCE";
+  status: VehicleStatus;
+  brand: string;
+  model: string;
+  vin: string;
+  mileage: number;
+  imageUrl: string;
+  images: string[];
+  insuranceExpiryDate: string;
+  annualReviewExpiryDate: string;
+  remindBeforeDays: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type VehicleDetail = Vehicle & {
+  insuranceReminder: VehicleReminderLevel;
+  annualReviewReminder: VehicleReminderLevel;
 };
 
 export type OrderStatus =
@@ -57,6 +144,12 @@ export type Order = {
   estimatedFee: number;
   totalFee: number;
   paidAmount: number;
+};
+
+export type OrderListItem = Order & {
+  plateNumber: string;
+  vehicleTypeId: string;
+  city: string;
 };
 
 export type Payment = {

@@ -16,7 +16,7 @@ export function BillingPanel(props: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>4) B/G 账单与对公支付</CardTitle>
+        <CardTitle>账单与对公支付</CardTitle>
         <CardDescription>覆盖生成账单、确认账单、发起支付及支付回调。</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

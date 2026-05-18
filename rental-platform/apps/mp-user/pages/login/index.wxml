@@ -1,11 +1,21 @@
 <view class="container">
-  <view class="card">
-    <view class="title">用户登录</view>
-    <view class="col">
-      <input class="input" placeholder="手机号" value="{{phone}}" bindinput="onPhoneInput" />
-      <input class="input" placeholder="密码" password value="{{password}}" bindinput="onPasswordInput" />
-      <button class="btn" type="primary" bindtap="handleLogin">登录并进入租车页</button>
-      <text class="status">{{message}}</text>
-    </view>
+  <view class="page-header">
+    <text class="page-header__title">欢迎回来</text>
+    <text class="page-header__desc">登录后即可租车、查询违章与 GPS</text>
   </view>
+
+  <section-card title="账号登录" desc="使用手机号与密码登录">
+    <view class="col">
+      <view>
+        <text class="label">手机号</text>
+        <input class="input" placeholder="请输入手机号" value="{{phone}}" bindinput="onPhoneInput" />
+      </view>
+      <view>
+        <text class="label">密码</text>
+        <input class="input" placeholder="请输入密码" password value="{{password}}" bindinput="onPasswordInput" />
+      </view>
+      <button class="btn" type="primary" bindtap="handleLogin">登录并进入租车</button>
+      <status-tip message="{{message}}" />
+    </view>
+  </section-card>
 </view>

@@ -21,7 +21,7 @@ export function LocationGpsPanel(props: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>6) 扩展能力：起点位置 + GPS</CardTitle>
+        <CardTitle>起点位置与 GPS</CardTitle>
         <CardDescription>模拟小程序约车起点输入，并查看车辆实时位置与轨迹。</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

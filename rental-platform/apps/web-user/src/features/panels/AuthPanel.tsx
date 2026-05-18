@@ -16,7 +16,7 @@ export function AuthPanel(props: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>1) 注册与登录</CardTitle>
+        <CardTitle>注册与登录</CardTitle>
         <CardDescription>用于快速联调用户注册及鉴权登录。</CardDescription>
       </CardHeader>
       <CardContent>
