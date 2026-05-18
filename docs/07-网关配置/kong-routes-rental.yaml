@@ -1,0 +1,82 @@
+﻿_format_version: "3.0"
+_transform: true
+
+services:
+  - name: user-service
+    url: http://user-service:8001
+    routes:
+      - name: user-routes
+        paths:
+          - /api/v1/users
+        strip_path: false
+
+  - name: vehicle-service
+    url: http://vehicle-service:8002
+    routes:
+      - name: vehicle-routes
+        paths:
+          - /api/v1/vehicles
+        strip_path: false
+
+  - name: order-service
+    url: http://order-service:8003
+    routes:
+      - name: order-routes
+        paths:
+          - /api/v1/orders
+        strip_path: false
+
+  - name: payment-service
+    url: http://payment-service:8004
+    routes:
+      - name: payment-routes
+        paths:
+          - /api/v1/payments
+          - /api/v1/refunds
+        strip_path: false
+
+  - name: finance-service
+    url: http://finance-service:8005
+    routes:
+      - name: finance-routes
+        paths:
+          - /api/v1/invoices
+          - /api/v1/bills
+        strip_path: false
+
+plugins:
+  - name: request-id
+    config:
+      header_name: X-Request-Id
+      include_in_response: true
+
+  - name: cors
+    config:
+      origins:
+        - "*"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Request-Id
+      exposed_headers:
+        - X-Request-Id
+      max_age: 3600
+
+  - name: rate-limiting
+    config:
+      minute: 600
+      policy: local
+      fault_tolerant: true
+
+  - name: jwt
+    config:
+      claims_to_verify:
+        - exp
+      key_claim_name: iss
+      run_on_preflight: false

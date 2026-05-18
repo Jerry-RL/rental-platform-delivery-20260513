@@ -1,0 +1,85 @@
+﻿openapi: 3.1.0
+info:
+  title: Rental Vehicles API
+  version: 1.1.0
+  description: 车辆域接口（含分页/排序/过滤）
+servers:
+  - url: https://api.rental.example.com
+paths:
+  /api/v1/vehicles:
+    get:
+      summary: 查询车辆列表
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPageVehicle'
+  /api/v1/vehicles/{vehicleId}:
+    get:
+      summary: 查询车辆详情
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVehicle'
+components:
+  parameters:
+    XRequestId: { in: header, name: X-Request-Id, required: false, schema: { type: string } }
+    PageNum: { in: query, name: pageNum, schema: { type: integer, default: 1, minimum: 1 } }
+    PageSize: { in: query, name: pageSize, schema: { type: integer, default: 20, minimum: 1, maximum: 200 } }
+    SortBy: { in: query, name: sortBy, schema: { type: string, default: createdAt } }
+    SortOrder: { in: query, name: sortOrder, schema: { type: string, enum: [asc, desc], default: desc } }
+    Filter: { in: query, name: filter, schema: { type: string } }
+  schemas:
+    ApiBase:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        timestamp: { type: string, format: date-time }
+        requestId: { type: string }
+      required: [code, message, timestamp, requestId]
+    ApiResponseVehicle:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/Vehicle' }
+    ApiPageVehicle:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items: { $ref: '#/components/schemas/Vehicle' }
+                pageNum: { type: integer }
+                pageSize: { type: integer }
+                total: { type: integer }
+    Vehicle:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        plateNumber: { type: string }
+        status: { type: string }
+        dailyPrice: { type: number, format: double }

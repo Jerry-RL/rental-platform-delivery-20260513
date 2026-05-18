@@ -1,0 +1,17 @@
+{
+  "name": "rental-platform",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w services/api",
+    "dev:web-user": "npm run dev -w apps/web-user",
+    "dev:web-admin": "npm run dev -w apps/web-admin",
+    "dev:mp-user": "npm run dev -w apps/mp-user",
+    "build": "npm run build -ws",
+    "lint": "npm run lint -ws --if-present"
+  }
+}

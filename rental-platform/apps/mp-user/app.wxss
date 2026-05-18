@@ -1,0 +1,69 @@
+page {
+  background: #f7f8fa;
+  color: #222;
+  font-size: 28rpx;
+}
+
+.container {
+  padding: 24rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.04);
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 18rpx;
+}
+
+.sub-title {
+  color: #666;
+  margin-bottom: 12rpx;
+}
+
+.row {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.input,
+.picker {
+  background: #f4f5f7;
+  border-radius: 12rpx;
+  padding: 16rpx;
+}
+
+.btn {
+  margin-top: 8rpx;
+}
+
+.muted {
+  color: #888;
+}
+
+.json {
+  background: #111827;
+  color: #e5e7eb;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.status {
+  margin-top: 10rpx;
+  color: #1677ff;
+}

@@ -1,0 +1,38 @@
+<view class="container">
+  <view class="card">
+    <view class="title">车辆查询与下单</view>
+    <view class="row">
+      <input class="input" placeholder="城市，例如 Shanghai" value="{{city}}" bindinput="onCityInput" />
+      <input class="input" placeholder="车型，例如 SUV" value="{{vehicleTypeId}}" bindinput="onVehicleTypeInput" />
+    </view>
+    <view class="row">
+      <picker mode="selector" range="{{settlementModes}}" bindchange="onSettlementChange" value="{{settlementIndex}}">
+        <view class="picker">结算方式：{{settlementModes[settlementIndex]}}</view>
+      </picker>
+      <picker mode="selector" range="{{serviceModes}}" bindchange="onServiceChange" value="{{serviceIndex}}">
+        <view class="picker">服务方式：{{serviceModes[serviceIndex]}}</view>
+      </picker>
+    </view>
+    <button class="btn" type="primary" bindtap="handleSearch">查询车辆</button>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">可租车辆</view>
+    <block wx:if="{{vehicles.length}}">
+      <block wx:for="{{vehicles}}" wx:key="id">
+        <view class="card">
+          <view>{{item.plateNumber}} · {{item.vehicleTypeId}} · ¥{{item.dailyPrice}}/天</view>
+          <button class="btn" size="mini" type="primary" data-vehicletypeid="{{item.vehicleTypeId}}" bindtap="handleCreateOrder">下单</button>
+        </view>
+      </block>
+    </block>
+    <view wx:else class="muted">暂无车辆数据</view>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">订单结果</view>
+    <text class="json">{{orderJson}}</text>
+    <button wx:if="{{latestOrderId}}" class="btn" bindtap="handleGoPay">去支付（订单 {{latestOrderId}}）</button>
+    <view class="status">{{message}}</view>
+  </view>
+</view>

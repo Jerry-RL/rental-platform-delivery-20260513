@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="card">
+    <view class="title">支付结果</view>
+    <view>订单ID：{{orderId}}</view>
+    <view>支付单ID：{{paymentId}}</view>
+    <view class="muted">轮询次数：{{pollCount}} / {{maxPollCount}}</view>
+    <view class="status">状态：{{status}}</view>
+    <text class="json">{{resultJson}}</text>
+    <button class="btn" bindtap="handleRefreshStatus">手动刷新支付状态</button>
+    <button wx:if="{{orderId}}" class="btn" bindtap="handleViewOrderStatus">查看订单状态</button>
+    <button class="btn" type="primary" bindtap="handleBackVehicles">返回租车页</button>
+  </view>
+</view>

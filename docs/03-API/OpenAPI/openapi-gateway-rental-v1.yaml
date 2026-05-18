@@ -1,0 +1,829 @@
+﻿openapi: 3.1.0
+info:
+  title: Rental Platform Gateway API
+  version: 1.5.0
+  description: 网关合并版 OpenAPI（聚合 users/vehicles/orders/payments/finance）
+servers:
+  - url: https://api.rental.example.com
+
+paths:
+  /api/v1/users/register:
+    post:
+      summary: 用户注册
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseUser' }
+
+  /api/v1/users/login:
+    post:
+      summary: 用户登录
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseToken' }
+
+  /api/v1/orgs:
+    post:
+      summary: 创建企业/政府组织主体
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrgRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrg' }
+
+  /api/v1/orgs/{orgId}:
+    get:
+      summary: 查询组织主体详情
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrg' }
+
+  /api/v1/orgs/{orgId}/members:
+    post:
+      summary: 新增组织成员
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrgMemberRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrgMember' }
+
+  /api/v1/orgs/{orgId}/members/{memberId}/roles:
+    put:
+      summary: 更新成员角色权限
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: memberId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMemberRolesRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrgMember' }
+
+  /api/v1/orgs/{orgId}/approvals:
+    post:
+      summary: 发起组织审批任务
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateApprovalRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseApproval' }
+
+  /api/v1/orgs/{orgId}/approvals/{approvalId}:
+    put:
+      summary: 审批通过或驳回
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: approvalId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HandleApprovalRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseApproval' }
+
+  /api/v1/vehicles:
+    get:
+      summary: 查询车辆列表
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiPageVehicle' }
+
+  /api/v1/orders:
+    get:
+      summary: 查询订单列表
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiPageOrder' }
+    post:
+      summary: 创建订单
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrderRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrder' }
+
+  /api/v1/orders/{orderId}:
+    get:
+      summary: 查询订单详情
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrder' }
+
+  /api/v1/payments:
+    get:
+      summary: 查询支付列表
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiPagePayment' }
+    post:
+      summary: 创建支付
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePaymentRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponsePayment' }
+
+  /api/v1/refunds:
+    post:
+      summary: 发起退款
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateRefundRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseRefund' }
+
+  /api/v1/payments/bills:
+    post:
+      summary: 账单支付（B/G端月结）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBillPaymentRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponsePayment' }
+  /api/v1/payments/bills/callback:
+    post:
+      summary: 对公支付回调
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BillPaymentCallbackRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponsePayment' }
+
+  /api/v1/invoices:
+    get:
+      summary: 查询发票列表
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiPageInvoice' }
+    post:
+      summary: 申请发票
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateInvoiceRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseInvoice' }
+
+  /api/v1/bills:
+    get:
+      summary: 查询账单列表（B/G端）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiPageBill' }
+    post:
+      summary: 生成账单（按账期聚合）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBillRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseBill' }
+  /api/v1/bills/{billId}:
+    get:
+      summary: 查询账单详情
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: billId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseBill' }
+  /api/v1/bills/{billId}/confirm:
+    put:
+      summary: 确认账单（进入待支付）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: billId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConfirmBillRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseBill' }
+
+components:
+  parameters:
+    XRequestId:
+      in: header
+      name: X-Request-Id
+      schema: { type: string }
+      required: false
+    PageNum:
+      in: query
+      name: pageNum
+      schema: { type: integer, default: 1, minimum: 1 }
+    PageSize:
+      in: query
+      name: pageSize
+      schema: { type: integer, default: 20, minimum: 1, maximum: 200 }
+    SortBy:
+      in: query
+      name: sortBy
+      schema: { type: string, default: createdAt }
+    SortOrder:
+      in: query
+      name: sortOrder
+      schema: { type: string, enum: [asc, desc], default: desc }
+    Filter:
+      in: query
+      name: filter
+      schema: { type: string }
+
+  schemas:
+    ApiBase:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        timestamp: { type: string, format: date-time }
+        requestId: { type: string }
+      required: [code, message, timestamp, requestId]
+
+    ApiResponseUser:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/User' } }
+
+    ApiResponseToken:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                accessToken: { type: string }
+                refreshToken: { type: string }
+                expiresIn: { type: integer }
+
+    ApiResponseOrg:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/OrgAccount' } }
+
+    ApiResponseOrgMember:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/OrgMember' } }
+
+    ApiResponseApproval:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/OrgApprovalTask' } }
+
+    ApiResponseOrder:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/Order' } }
+
+    ApiResponsePayment:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/Payment' } }
+
+    ApiResponseRefund:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/Refund' } }
+
+    ApiResponseInvoice:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/Invoice' } }
+
+    ApiResponseBill:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties: { data: { $ref: '#/components/schemas/Bill' } }
+
+    ApiPageOrder:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items: { type: array, items: { $ref: '#/components/schemas/Order' } }
+                pageNum: { type: integer }
+                pageSize: { type: integer }
+                total: { type: integer }
+
+    ApiPageVehicle:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items: { type: array, items: { $ref: '#/components/schemas/Vehicle' } }
+                pageNum: { type: integer }
+                pageSize: { type: integer }
+                total: { type: integer }
+
+    ApiPagePayment:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items: { type: array, items: { $ref: '#/components/schemas/Payment' } }
+                pageNum: { type: integer }
+                pageSize: { type: integer }
+                total: { type: integer }
+
+    ApiPageInvoice:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items: { type: array, items: { $ref: '#/components/schemas/Invoice' } }
+                pageNum: { type: integer }
+                pageSize: { type: integer }
+                total: { type: integer }
+
+    ApiPageBill:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                items: { type: array, items: { $ref: '#/components/schemas/Bill' } }
+                pageNum: { type: integer }
+                pageSize: { type: integer }
+                total: { type: integer }
+
+    RegisterRequest:
+      type: object
+      required: [phone, password, verifyCode]
+      properties:
+        phone: { type: string }
+        password: { type: string }
+        verifyCode: { type: string }
+
+    LoginRequest:
+      type: object
+      required: [phone, password]
+      properties:
+        phone: { type: string }
+        password: { type: string }
+
+    CreateOrgRequest:
+      type: object
+      required: [orgName, accountType, creditCode, primaryAdminUserId]
+      properties:
+        orgName: { type: string }
+        accountType: { type: string, enum: [B, G] }
+        creditCode: { type: string }
+        primaryAdminUserId: { type: string, format: uuid }
+        contactName: { type: string }
+        contactPhone: { type: string }
+
+    CreateOrgMemberRequest:
+      type: object
+      required: [userId, departmentName, roleCodes]
+      properties:
+        userId: { type: string, format: uuid }
+        departmentName: { type: string }
+        roleCodes: { type: array, items: { type: string } }
+
+    UpdateMemberRolesRequest:
+      type: object
+      required: [roleCodes]
+      properties:
+        roleCodes: { type: array, items: { type: string } }
+        dataScope: { type: string, enum: [ORG, DEPT, SELF] }
+
+    CreateApprovalRequest:
+      type: object
+      required: [approvalType, targetMemberId]
+      properties:
+        approvalType: { type: string, enum: [MEMBER_OPEN, ROLE_CHANGE, BILL_CONFIRM] }
+        targetMemberId: { type: string, format: uuid }
+        reason: { type: string }
+
+    HandleApprovalRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [APPROVE, REJECT] }
+        comment: { type: string }
+
+    CreateOrderRequest:
+      type: object
+      required: [vehicleTypeId, pickupStoreId, returnStoreId, pickupTime, returnTime, settlementMode, serviceMode]
+      properties:
+        vehicleTypeId: { type: string, format: uuid }
+        pickupStoreId: { type: string, format: uuid }
+        returnStoreId: { type: string, format: uuid }
+        pickupTime: { type: string, format: date-time }
+        returnTime: { type: string, format: date-time }
+        settlementMode: { type: string, enum: [PREPAID, POSTPAID] }
+        billingAccountId: { type: string, format: uuid }
+        serviceMode: { type: string, enum: [SELF_DRIVE, WITH_DRIVER] }
+        driverId: { type: string, format: uuid }
+
+    CreatePaymentRequest:
+      type: object
+      required: [orderId, amount, channel, settlementMode]
+      properties:
+        orderId: { type: string, format: uuid }
+        amount: { type: number, format: double }
+        channel: { type: string, enum: [alipay, wechat, bank] }
+        settlementMode: { type: string, enum: [PREPAID, POSTPAID] }
+        billingAccountId: { type: string, format: uuid }
+        billingPeriod: { type: string, description: 月结账期，格式YYYY-MM }
+
+    CreateBillPaymentRequest:
+      type: object
+      required: [billId, amount, channel, billingAccountId, billingPeriod]
+      properties:
+        billId: { type: string, format: uuid }
+        amount: { type: number, format: double }
+        channel: { type: string, enum: [bank, transfer, offline] }
+        billingAccountId: { type: string, format: uuid }
+        billingPeriod: { type: string, description: 月结账期，格式YYYY-MM }
+        settlementMode: { type: string, enum: [POSTPAID], default: POSTPAID }
+
+    BillPaymentCallbackRequest:
+      type: object
+      required: [billId, channelTxnNo, status, paidAmount]
+      properties:
+        billId: { type: string, format: uuid }
+        channelTxnNo: { type: string }
+        status: { type: string, enum: [SUCCESS, FAILED] }
+        paidAmount: { type: number, format: double }
+        paidAt: { type: string, format: date-time }
+        idempotencyKey: { type: string }
+
+    CreateRefundRequest:
+      type: object
+      required: [orderId, amount]
+      properties:
+        orderId: { type: string, format: uuid }
+        amount: { type: number, format: double }
+        reason: { type: string }
+
+    CreateInvoiceRequest:
+      type: object
+      required: [orderId, titleType, invoiceTitle]
+      properties:
+        orderId: { type: string, format: uuid }
+        billId: { type: string, format: uuid }
+        titleType: { type: string, enum: [PERSONAL, COMPANY] }
+        invoiceTitle: { type: string }
+        taxNo: { type: string }
+        email: { type: string }
+
+    CreateBillRequest:
+      type: object
+      required: [billingAccountId, accountType, billingPeriod]
+      properties:
+        billingAccountId: { type: string, format: uuid }
+        accountType: { type: string, enum: [B, G] }
+        billingPeriod: { type: string, description: 月结账期，格式YYYY-MM }
+        dueDate: { type: string, format: date }
+
+    ConfirmBillRequest:
+      type: object
+      required: [confirmedBy]
+      properties:
+        confirmedBy: { type: string, format: uuid }
+        confirmRemark: { type: string }
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        phone: { type: string }
+        realName: { type: string }
+        status: { type: string }
+
+    OrgAccount:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orgName: { type: string }
+        accountType: { type: string, enum: [B, G] }
+        creditCode: { type: string }
+        status: { type: string, enum: [PENDING, ACTIVE, FROZEN, CLOSED] }
+        frozenAt: { type: string, format: date-time }
+        frozenReason: { type: string }
+        closedAt: { type: string, format: date-time }
+        closeReason: { type: string }
+
+    OrgMember:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orgId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        departmentName: { type: string }
+        roleCodes: { type: array, items: { type: string } }
+        status: { type: string, enum: [PENDING, ACTIVE, DISABLED] }
+
+    OrgApprovalTask:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orgId: { type: string, format: uuid }
+        approvalType: { type: string }
+        status: { type: string, enum: [PENDING, APPROVED, REJECTED] }
+
+    Vehicle:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        plateNumber: { type: string }
+        status: { type: string }
+        dailyPrice: { type: number, format: double }
+
+    Order:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orderNo: { type: string }
+        status: { type: string }
+        settlementMode: { type: string, enum: [PREPAID, POSTPAID] }
+        serviceMode: { type: string, enum: [SELF_DRIVE, WITH_DRIVER] }
+        driverId: { type: string, format: uuid }
+        chauffeurFee: { type: number, format: double }
+        billingAccountId: { type: string, format: uuid }
+        billingPeriod: { type: string, description: 月结账期，格式YYYY-MM }
+        totalFee: { type: number, format: double }
+
+    Payment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orderId: { type: string, format: uuid }
+        billId: { type: string, format: uuid }
+        status: { type: string }
+        amount: { type: number, format: double }
+        settlementMode: { type: string, enum: [PREPAID, POSTPAID] }
+        billingAccountId: { type: string, format: uuid }
+        billingPeriod: { type: string, description: 月结账期，格式YYYY-MM }
+        channelTxnNo: { type: string }
+
+    Refund:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orderId: { type: string, format: uuid }
+        status: { type: string }
+        amount: { type: number, format: double }
+
+    Invoice:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orderId: { type: string, format: uuid }
+        billId: { type: string, format: uuid }
+        invoiceNo: { type: string }
+        amount: { type: number, format: double }
+        status: { type: string }
+
+    Bill:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        billNo: { type: string }
+        billingAccountId: { type: string, format: uuid }
+        accountType: { type: string, enum: [B, G] }
+        billingPeriod: { type: string, description: 月结账期，格式YYYY-MM }
+        totalAmount: { type: number, format: double }
+        paidAmount: { type: number, format: double }
+        status: { type: string, enum: [PENDING_CONFIRM, PENDING_PAYMENT, PARTIALLY_PAID, PAID, PAYMENT_FAILED, OVERDUE] }
+        confirmedAt: { type: string, format: date-time }
+        confirmedBy: { type: string, format: uuid }
+        lastPaymentAt: { type: string, format: date-time }
+        reconciliationStatus: { type: string, enum: [PENDING, DONE, FAILED] }
+        dueDate: { type: string, format: date }

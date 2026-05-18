@@ -1,0 +1,11 @@
+{
+  "name": "mp-user",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WeChat mini program client for rental platform",
+  "scripts": {
+    "check": "echo \"Use WeChat DevTools to run this app.\"",
+    "build": "echo \"Build in WeChat DevTools.\"",
+    "dev": "echo \"Run in WeChat DevTools.\""
+  }
+}

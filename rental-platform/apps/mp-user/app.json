@@ -1,0 +1,60 @@
+{
+  "pages": [
+    "pages/login/index",
+    "pages/vehicles/index",
+    "pages/violation/index",
+    "pages/gps/index",
+    "pages/reminder/index"
+  ],
+  "subpackages": [
+    {
+      "root": "pkg-order",
+      "pages": [
+        "payment/index",
+        "payment-result/index",
+        "order-status/index"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarTitleText": "租车小程序",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f7f8fa",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#1677ff",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/vehicles/index",
+        "text": "租车"
+      },
+      {
+        "pagePath": "pages/violation/index",
+        "text": "违章"
+      },
+      {
+        "pagePath": "pages/gps/index",
+        "text": "GPS"
+      },
+      {
+        "pagePath": "pages/reminder/index",
+        "text": "提醒"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于门店选点、上车定位与轨迹展示"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json",
+  "style": "v2"
+}

@@ -1,0 +1,3 @@
+.picker {
+  min-width: 260rpx;
+}

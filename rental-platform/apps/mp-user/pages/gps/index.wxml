@@ -1,0 +1,21 @@
+<view class="container">
+  <view class="card">
+    <view class="title">GPS实时与轨迹</view>
+    <input class="input" placeholder="车辆ID" value="{{vehicleId}}" bindinput="onVehicleInput" />
+    <view class="row">
+      <button class="btn" type="primary" bindtap="handleRealtime">实时位置</button>
+      <button class="btn" bindtap="handleTrack">历史轨迹</button>
+    </view>
+    <view class="status">{{message}}</view>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">实时数据</view>
+    <text class="json">{{realtimeJson}}</text>
+  </view>
+
+  <view class="card">
+    <view class="sub-title">轨迹数据</view>
+    <text class="json">{{trackJson}}</text>
+  </view>
+</view>

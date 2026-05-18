@@ -1,0 +1,10 @@
+<view class="container">
+  <view class="card">
+    <view class="title">订单状态</view>
+    <view>订单ID：{{orderId}}</view>
+    <view class="status">状态：{{status}}</view>
+    <text class="json">{{orderJson}}</text>
+    <button class="btn" bindtap="handleRefresh">刷新订单状态</button>
+    <button class="btn" type="primary" bindtap="handleBackVehicles">返回租车页</button>
+  </view>
+</view>

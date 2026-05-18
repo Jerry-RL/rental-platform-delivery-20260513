@@ -1,0 +1,325 @@
+﻿openapi: 3.1.0
+info:
+  title: Rental Users API
+  version: 1.3.0
+  description: 用户域接口（含 requestId 规范）
+servers:
+  - url: https://api.rental.example.com
+paths:
+  /api/v1/users/register:
+    post:
+      summary: 用户注册
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUser'
+  /api/v1/users/login:
+    post:
+      summary: 用户登录
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseToken'
+  /api/v1/users/{userId}:
+    get:
+      summary: 查询用户
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUser'
+  /api/v1/orgs:
+    post:
+      summary: 创建企业/政府组织主体
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrgRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrg' }
+  /api/v1/orgs/{orgId}:
+    get:
+      summary: 查询组织主体详情
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrg' }
+  /api/v1/orgs/{orgId}/members:
+    post:
+      summary: 新增组织成员
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrgMemberRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrgMember' }
+  /api/v1/orgs/{orgId}/members/{memberId}/roles:
+    put:
+      summary: 更新成员角色权限
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: memberId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMemberRolesRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseOrgMember' }
+  /api/v1/orgs/{orgId}/approvals:
+    post:
+      summary: 发起组织审批任务
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateApprovalRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseApproval' }
+  /api/v1/orgs/{orgId}/approvals/{approvalId}:
+    put:
+      summary: 审批通过或驳回
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: approvalId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/HandleApprovalRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseApproval' }
+components:
+  parameters:
+    XRequestId:
+      in: header
+      name: X-Request-Id
+      required: false
+      schema: { type: string }
+      description: 请求链路ID
+  schemas:
+    ApiBase:
+      type: object
+      properties:
+        code: { type: integer }
+        message: { type: string }
+        data: { type: [object, "null"] }
+        timestamp: { type: string, format: date-time }
+        requestId: { type: string }
+      required: [code, message, timestamp, requestId]
+    ApiResponseUser:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/User'
+    ApiResponseToken:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                accessToken: { type: string }
+                refreshToken: { type: string }
+                expiresIn: { type: integer }
+    ApiResponseOrg:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/OrgAccount' }
+    ApiResponseOrgMember:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/OrgMember' }
+    ApiResponseApproval:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/OrgApprovalTask' }
+    RegisterRequest:
+      type: object
+      required: [phone, password, verifyCode]
+      properties:
+        phone: { type: string }
+        password: { type: string }
+        verifyCode: { type: string }
+    LoginRequest:
+      type: object
+      required: [phone, password]
+      properties:
+        phone: { type: string }
+        password: { type: string }
+    CreateOrgRequest:
+      type: object
+      required: [orgName, accountType, creditCode, primaryAdminUserId]
+      properties:
+        orgName: { type: string }
+        accountType: { type: string, enum: [B, G] }
+        creditCode: { type: string }
+        primaryAdminUserId: { type: string, format: uuid }
+        contactName: { type: string }
+        contactPhone: { type: string }
+    CreateOrgMemberRequest:
+      type: object
+      required: [userId, departmentName, roleCodes]
+      properties:
+        userId: { type: string, format: uuid }
+        departmentName: { type: string }
+        roleCodes:
+          type: array
+          items: { type: string }
+    CreateApprovalRequest:
+      type: object
+      required: [approvalType, targetMemberId]
+      properties:
+        approvalType: { type: string, enum: [MEMBER_OPEN, ROLE_CHANGE, BILL_CONFIRM] }
+        targetMemberId: { type: string, format: uuid }
+        reason: { type: string }
+    UpdateMemberRolesRequest:
+      type: object
+      required: [roleCodes]
+      properties:
+        roleCodes:
+          type: array
+          items: { type: string }
+        dataScope:
+          type: string
+          enum: [ORG, DEPT, SELF]
+    HandleApprovalRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [APPROVE, REJECT] }
+        comment: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        phone: { type: string }
+        realName: { type: string }
+        status: { type: string }
+    OrgAccount:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orgName: { type: string }
+        accountType: { type: string, enum: [B, G] }
+        creditCode: { type: string }
+        status: { type: string, enum: [PENDING, ACTIVE, FROZEN, CLOSED] }
+        frozenAt: { type: string, format: date-time }
+        frozenReason: { type: string }
+        closedAt: { type: string, format: date-time }
+        closeReason: { type: string }
+    OrgMember:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orgId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        departmentName: { type: string }
+        roleCodes:
+          type: array
+          items: { type: string }
+        status: { type: string, enum: [PENDING, ACTIVE, DISABLED] }
+    OrgApprovalTask:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        orgId: { type: string, format: uuid }
+        approvalType: { type: string }
+        status: { type: string, enum: [PENDING, APPROVED, REJECTED] }

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <changeSet id="1-init-user-service" author="ai">
+    <sqlFile path="V1__init_user_service.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+  <changeSet id="2-init-vehicle-service" author="ai">
+    <sqlFile path="V2__init_vehicle_service.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+  <changeSet id="3-init-order-service" author="ai">
+    <sqlFile path="V3__init_order_service.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+  <changeSet id="4-init-payment-finance-service" author="ai">
+    <sqlFile path="V4__init_payment_finance_service.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+</databaseChangeLog>

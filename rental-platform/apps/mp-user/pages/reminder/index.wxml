@@ -1,0 +1,16 @@
+<view class="container">
+  <view class="card">
+    <view class="title">到期提醒摘要</view>
+    <button class="btn" type="primary" bindtap="handleLoadSummary">读取提醒摘要</button>
+    <text class="json">{{summaryJson}}</text>
+  </view>
+
+  <view class="card">
+    <view class="title">地图起点选择</view>
+    <view class="sub-title">地图 Key：{{mapKey}}</view>
+    <button class="btn" bindtap="handleChooseLocation">选择起点位置</button>
+    <text class="json">{{locationJson}}</text>
+  </view>
+
+  <view class="status">{{message}}</view>
+</view>
