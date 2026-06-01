@@ -4,6 +4,7 @@ import {
   api,
   buildVehicleDetail,
   formatMoney,
+  previewStore,
   formatVehicleHistoryEvent,
   type Store,
   type Vehicle,
@@ -70,7 +71,7 @@ export function VehicleDetailPage() {
     );
   }
 
-  const detail = buildVehicleDetail(vehicle, store);
+  const detail = buildVehicleDetail(previewStore, vehicle, store);
   const images = vehicle.imageUrls?.length ? vehicle.imageUrls : [vehicle.imageUrl];
   const recentEvents = history?.events.slice(0, 5) ?? [];
 

@@ -192,6 +192,10 @@ export type VehicleStatus =
 
 export type MaintenanceReminderLevel = "OK" | "DUE_SOON" | "OVERDUE";
 
+export type ScrapReminderLevel = "OK" | "DUE_SOON" | "OVERDUE" | "RETIRED";
+
+export type MileageMonitorLevel = "NORMAL" | "HIGH_USAGE" | "ANOMALY" | "STALE";
+
 export type Vehicle = {
   id: string;
   plateNumber: string;
@@ -216,6 +220,56 @@ export type Vehicle = {
   imageUrls?: string[];
   insuranceExpiryDate: string;
   annualReviewExpiryDate: string;
+  /** 采购/上牌日期，用于车龄与报废提醒 */
+  purchaseDate?: string;
+  /** 报废里程上限 km */
+  scrapMileageLimitKm?: number;
+  /** 最长服役年限 */
+  maxServiceYears?: number;
+};
+
+export type ScrapReminder = {
+  vehicleId: string;
+  plateNumber: string;
+  brand: string;
+  model: string;
+  status: VehicleStatus;
+  currentMileageKm: number;
+  scrapMileageLimitKm: number;
+  kmUntilScrap: number;
+  purchaseDate: string;
+  serviceYears: number;
+  maxServiceYears: number;
+  yearsUntilScrap: number;
+  level: ScrapReminderLevel;
+  reason: string;
+};
+
+export type MileageMonitor = {
+  vehicleId: string;
+  plateNumber: string;
+  brand: string;
+  model: string;
+  status: VehicleStatus;
+  currentMileageKm: number;
+  lastRecordAt?: string;
+  lastDeltaKm?: number;
+  avgKmPerDay?: number;
+  level: MileageMonitorLevel;
+  hint: string;
+};
+
+/** 管理端车辆列表扩展字段 */
+export type VehicleAdminView = Vehicle & {
+  maintenanceLevel: MaintenanceReminderLevel;
+  maintenanceLabel: string;
+  scrapLevel: ScrapReminderLevel;
+  scrapLabel: string;
+  kmUntilScrap: number;
+  serviceYears: number;
+  mileageMonitorLevel: MileageMonitorLevel;
+  mileageMonitorLabel: string;
+  mileageMonitorHint: string;
 };
 
 /** 车辆全生命周期轨迹事件（FR-VEH-006/007 + 订单履约） */

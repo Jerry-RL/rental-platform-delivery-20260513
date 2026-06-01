@@ -347,7 +347,10 @@ const coreVehicles: Vehicle[] = [
     gpsProvider: "TUQIANG",
     imageUrl: "https://images.unsplash.com/photo-1519641471654-76ce5357ab85?w=400",
     insuranceExpiryDate: "2026-08-15",
-    annualReviewExpiryDate: "2026-09-01"
+    annualReviewExpiryDate: "2026-09-01",
+    purchaseDate: "2022-03-10",
+    scrapMileageLimitKm: 120_000,
+    maxServiceYears: 8
   },
   {
     id: IDS.vehicle2,
@@ -367,7 +370,10 @@ const coreVehicles: Vehicle[] = [
     gpsProvider: "CHENGZAI",
     imageUrl: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400",
     insuranceExpiryDate: "2026-06-20",
-    annualReviewExpiryDate: "2026-09-01"
+    annualReviewExpiryDate: "2026-09-01",
+    purchaseDate: "2021-08-15",
+    scrapMileageLimitKm: 120_000,
+    maxServiceYears: 8
   },
   {
     id: IDS.vehicle3,
@@ -380,13 +386,16 @@ const coreVehicles: Vehicle[] = [
     brand: "本田",
     model: "CR-V",
     vin: "LVHGD1865N8009012",
-    mileage: 42100,
-    lastMaintenanceMileageKm: 35000,
+    mileage: 112_500,
+    lastMaintenanceMileageKm: 105_000,
     maintenanceIntervalKm: 10000,
     lastMaintenanceAt: "2026-04-01",
     imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400",
     insuranceExpiryDate: "2026-04-01",
-    annualReviewExpiryDate: "2026-07-01"
+    annualReviewExpiryDate: "2026-07-01",
+    purchaseDate: "2018-05-20",
+    scrapMileageLimitKm: 120_000,
+    maxServiceYears: 8
   },
   {
     id: "d4000001-0001-4000-8000-000000000004",
@@ -399,13 +408,16 @@ const coreVehicles: Vehicle[] = [
     brand: "别克",
     model: "GL8",
     vin: "LVSHCAAJ8NN011223",
-    mileage: 56200,
-    lastMaintenanceMileageKm: 48000,
+    mileage: 108_200,
+    lastMaintenanceMileageKm: 100_000,
     maintenanceIntervalKm: 10000,
     lastMaintenanceAt: "2025-11-20",
     imageUrl: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400",
     insuranceExpiryDate: "2026-10-01",
-    annualReviewExpiryDate: "2026-08-01"
+    annualReviewExpiryDate: "2026-08-01",
+    purchaseDate: "2017-11-01",
+    scrapMileageLimitKm: 120_000,
+    maxServiceYears: 8
   }
 ];
 
@@ -1314,11 +1326,22 @@ const coreMileageRecords: MileageRecord[] = [
     id: "mr-003",
     vehicleId: IDS.vehicle3,
     plateNumber: "京C66889",
-    mileageKm: 42100,
-    previousMileageKm: 42000,
-    deltaKm: 100,
+    mileageKm: 110_200,
+    previousMileageKm: 108_500,
+    deltaKm: 1700,
+    source: "ORDER_RETURN",
+    recordedAt: "2026-05-20T12:00:00.000Z",
+    recordedBy: "北京门店"
+  },
+  {
+    id: "mr-003b",
+    vehicleId: IDS.vehicle3,
+    plateNumber: "京C66889",
+    mileageKm: 112_500,
+    previousMileageKm: 110_200,
+    deltaKm: 2300,
     source: "MANUAL",
-    recordedAt: "2026-05-27T10:00:00.000Z",
+    recordedAt: "2026-05-29T10:00:00.000Z",
     recordedBy: "陈运营"
   }
 ];

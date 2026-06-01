@@ -188,7 +188,13 @@ export const generateFleetSeed = (startSeq = 5): FleetSeedBundle => {
         gpsProvider: rng() > 0.45 ? (rng() > 0.5 ? "TUQIANG" : "CHENGZAI") : undefined,
         imageUrl: getVehicleImageUrl(globalSeq, vehicleTypeId),
         insuranceExpiryDate: addDays(baseDate, Math.floor(rng() * 240) - 30),
-        annualReviewExpiryDate: addDays(baseDate, Math.floor(rng() * 200) + 30)
+        annualReviewExpiryDate: addDays(baseDate, Math.floor(rng() * 200) + 30),
+        purchaseDate: addDays(
+          baseDate,
+          -Math.floor((mileage / 12_000) * 365 + rng() * 400)
+        ),
+        scrapMileageLimitKm: 120_000,
+        maxServiceYears: 8
       });
     }
   }

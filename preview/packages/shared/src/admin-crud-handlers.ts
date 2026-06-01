@@ -45,7 +45,10 @@ const defs: Record<string, ResourceDef> = {
           )
         : undefined,
       insuranceExpiryDate: String(b.insuranceExpiryDate ?? "2027-12-31"),
-      annualReviewExpiryDate: String(b.annualReviewExpiryDate ?? "2027-06-30")
+      annualReviewExpiryDate: String(b.annualReviewExpiryDate ?? "2027-06-30"),
+      purchaseDate: String(b.purchaseDate ?? new Date().toISOString().slice(0, 10)),
+      scrapMileageLimitKm: Number(b.scrapMileageLimitKm ?? 120_000),
+      maxServiceYears: Number(b.maxServiceYears ?? 8)
     })
   },
   orders: {

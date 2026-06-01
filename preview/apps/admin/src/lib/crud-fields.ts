@@ -34,6 +34,9 @@ export const vehicleCrudFields: CrudFieldDef[] = [
   },
   { key: "dailyPrice", label: "日租价", type: "number" },
   { key: "mileage", label: "里程 km", type: "number" },
+  { key: "purchaseDate", label: "上牌日期", type: "text", placeholder: "YYYY-MM-DD" },
+  { key: "scrapMileageLimitKm", label: "报废里程上限", type: "number" },
+  { key: "maxServiceYears", label: "最长服役年", type: "number" },
   {
     key: "status",
     label: "状态",

@@ -12,6 +12,7 @@ export * from "./driver-detail";
 export * from "./driver-admin-profile";
 export * from "./vehicle-detail";
 export * from "./vehicle-history";
+export * from "./vehicle-fleet-monitor";
 export * from "./order-detail";
 export * from "./order-status";
 export * from "./order-fulfillment";

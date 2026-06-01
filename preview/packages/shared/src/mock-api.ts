@@ -16,6 +16,12 @@ import {
   parseSelfDriveVehicleIds
 } from "./multi-license";
 import { buildMaintenanceReminder } from "./maintenance";
+import {
+  enrichVehicleAdminView,
+  fleetMonitorSummary,
+  listMileageMonitors,
+  listScrapReminders
+} from "./vehicle-fleet-monitor";
 import { normalizeVehicleImages } from "./vehicle-images";
 import { applyLicenseToUser } from "./license-sync";
 import { findUserLicense, previewStore } from "./store";
@@ -476,13 +482,34 @@ export const handleMockRequest = async <T>(req: MockRequest): Promise<ApiRespons
     if (q.maintenanceLevel) {
       items = items.filter((v) => buildMaintenanceReminder(v).level === q.maintenanceLevel);
     }
-    return ok(
-      page(
-        items.map(normalizeVehicleImages),
-        Number(q.pageNum) || 1,
-        Number(q.pageSize) || 50
-      ) as T
-    );
+    if (q.scrapLevel) {
+      items = items.filter((v) => enrichVehicleAdminView(s, v).scrapLevel === q.scrapLevel);
+    }
+    if (q.mileageMonitorLevel) {
+      items = items.filter(
+        (v) => enrichVehicleAdminView(s, v).mileageMonitorLevel === q.mileageMonitorLevel
+      );
+    }
+    const enriched = items.map((v) => enrichVehicleAdminView(s, normalizeVehicleImages(v)));
+    return ok(page(enriched, Number(q.pageNum) || 1, Number(q.pageSize) || 50) as T);
+  }
+
+  if (method === "GET" && pathname === "/api/v1/admin/scrap-reminders") {
+    let items = listScrapReminders(s);
+    if (q.level) items = items.filter((r) => r.level === q.level);
+    if (q.plateNumber) items = items.filter((r) => r.plateNumber.includes(q.plateNumber));
+    return ok(page(items, Number(q.pageNum) || 1, Number(q.pageSize) || 50) as T);
+  }
+
+  if (method === "GET" && pathname === "/api/v1/admin/mileage-monitor") {
+    let items = listMileageMonitors(s);
+    if (q.level) items = items.filter((r) => r.level === q.level);
+    if (q.plateNumber) items = items.filter((r) => r.plateNumber.includes(q.plateNumber));
+    return ok(page(items, Number(q.pageNum) || 1, Number(q.pageSize) || 50) as T);
+  }
+
+  if (method === "GET" && pathname === "/api/v1/admin/fleet-monitor/summary") {
+    return ok(fleetMonitorSummary(s) as T);
   }
 
   if (method === "GET" && pathname === "/api/v1/admin/maintenance-reminders") {

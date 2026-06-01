@@ -1,6 +1,8 @@
 import { buildMaintenanceReminder } from "./maintenance";
 import { vehicleStatusLabel } from "./labels";
 import { vehicleTypeLabel } from "./vehicle-catalog";
+import { buildMileageMonitor, buildScrapReminder, scrapReminderLabel } from "./vehicle-fleet-monitor";
+import type { PreviewStore } from "./store";
 import type { Store, Vehicle, VehicleHistoryEvent } from "./types";
 
 export type VehicleDetailView = {
@@ -10,9 +12,17 @@ export type VehicleDetailView = {
   statusLabel: string;
   maintenanceHint: string;
   maintenanceLevel: string;
+  scrapHint: string;
+  scrapLevel: string;
+  mileageMonitorHint: string;
+  mileageMonitorLevel: string;
 };
 
-export const buildVehicleDetail = (vehicle: Vehicle, store?: Store | null): VehicleDetailView => {
+export const buildVehicleDetail = (
+  store: PreviewStore,
+  vehicle: Vehicle,
+  storeRow?: Store | null
+): VehicleDetailView => {
   const reminder = buildMaintenanceReminder(vehicle);
   const maintenanceHint =
     reminder.level === "OK"
@@ -21,13 +31,20 @@ export const buildVehicleDetail = (vehicle: Vehicle, store?: Store | null): Vehi
         ? `即将保养（剩余约 ${reminder.kmUntilDue} km）`
         : `建议尽快保养（已超约 ${Math.abs(reminder.kmUntilDue)} km）`;
 
+  const scrap = buildScrapReminder(vehicle);
+  const mileageMon = buildMileageMonitor(store, vehicle);
+
   return {
     vehicle,
-    store: store ?? undefined,
+    store: storeRow ?? undefined,
     typeLabel: vehicleTypeLabel[vehicle.vehicleTypeId] ?? vehicle.vehicleTypeId,
     statusLabel: vehicleStatusLabel[vehicle.status],
     maintenanceHint,
-    maintenanceLevel: reminder.level
+    maintenanceLevel: reminder.level,
+    scrapHint: scrap.reason,
+    scrapLevel: scrap.level,
+    mileageMonitorHint: mileageMon.hint,
+    mileageMonitorLevel: mileageMon.level
   };
 };
 

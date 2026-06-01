@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 import { VehicleImage } from "../../components/shared/VehicleImage";
-import { formatMoney, vehicleStatusLabel, type Vehicle } from "@rental-preview/shared";
+import {
+  formatMoney,
+  scrapReminderLabel,
+  mileageMonitorLabel,
+  vehicleStatusLabel,
+  type VehicleAdminView
+} from "@rental-preview/shared";
 import { AdminCrudPanel } from "../../components/shared/AdminCrudPanel";
 import { vehicleBatchActions, vehicleCrudFields } from "../../lib/crud-fields";
 import { Badge } from "../../components/ui/badge";
@@ -48,8 +54,34 @@ const vehicleFilterFields = [
       { value: "DUE_SOON", label: "即将保养" },
       { value: "OK", label: "正常" }
     ]
+  },
+  {
+    key: "scrapLevel",
+    label: "报废提醒",
+    type: "select" as const,
+    options: [
+      { value: "OVERDUE", label: "建议报废" },
+      { value: "DUE_SOON", label: "即将报废" },
+      { value: "OK", label: "正常" },
+      { value: "RETIRED", label: "已报废" }
+    ]
+  },
+  {
+    key: "mileageMonitorLevel",
+    label: "里程监控",
+    type: "select" as const,
+    options: [
+      { value: "ANOMALY", label: "异常跳变" },
+      { value: "HIGH_USAGE", label: "高里程" },
+      { value: "STALE", label: "久未同步" },
+      { value: "NORMAL", label: "正常" }
+    ]
   }
 ];
+
+const fleetBadge = (variant: "success" | "warning" | "secondary", label: string) => (
+  <Badge variant={variant}>{label}</Badge>
+);
 
 export function VehiclesInventoryTab() {
   return (
@@ -57,7 +89,7 @@ export function VehiclesInventoryTab() {
       <p className="text-xs text-muted-foreground">
         GET /api/v1/vehicles · 新建/编辑可上传车辆图（封面+多图）· POST /api/v1/admin/uploads/vehicle-image
       </p>
-      <AdminCrudPanel<Vehicle>
+      <AdminCrudPanel<VehicleAdminView>
         resource="vehicles"
         listPath="/api/v1/vehicles"
         initialFilters={{
@@ -65,7 +97,9 @@ export function VehiclesInventoryTab() {
           city: "",
           status: "",
           vehicleTypeId: "",
-          maintenanceLevel: ""
+          maintenanceLevel: "",
+          scrapLevel: "",
+          mileageMonitorLevel: ""
         }}
         filterFields={vehicleFilterFields}
         formFields={vehicleCrudFields}
@@ -119,6 +153,37 @@ export function VehiclesInventoryTab() {
             )
           },
           { key: "mileage", header: "里程(km)", render: (r) => r.mileage.toLocaleString() },
+          {
+            key: "maint",
+            header: "保养",
+            render: (r) =>
+              fleetBadge(
+                r.maintenanceLevel === "OK"
+                  ? "success"
+                  : r.maintenanceLevel === "DUE_SOON"
+                    ? "warning"
+                    : "warning",
+                r.maintenanceLabel
+              )
+          },
+          {
+            key: "scrap",
+            header: "报废提醒",
+            render: (r) =>
+              fleetBadge(
+                r.scrapLevel === "OK" || r.scrapLevel === "RETIRED" ? "secondary" : "warning",
+                scrapReminderLabel[r.scrapLevel]
+              )
+          },
+          {
+            key: "mon",
+            header: "里程监控",
+            render: (r) =>
+              fleetBadge(
+                r.mileageMonitorLevel === "NORMAL" ? "success" : "warning",
+                mileageMonitorLabel[r.mileageMonitorLevel]
+              )
+          },
           { key: "price", header: "日租", render: (r) => formatMoney(r.dailyPrice) }
         ]}
       />
