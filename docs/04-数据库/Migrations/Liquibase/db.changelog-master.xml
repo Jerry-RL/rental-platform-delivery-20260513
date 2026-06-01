@@ -37,4 +37,12 @@
     <sqlFile path="V8__invoice_adapter_fields.sql" relativeToChangelogFile="true"/>
   </changeSet>
 
+  <changeSet id="9-operating-cost-management" author="ai">
+    <sqlFile path="V9__operating_cost_management.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+  <changeSet id="10-order-pricing-rules" author="ai">
+    <sqlFile path="V10__order_pricing_rules.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
 </databaseChangeLog>

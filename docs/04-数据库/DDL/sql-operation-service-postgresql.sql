@@ -1,0 +1,10 @@
+-- Operation Service DDL 索引
+-- 实施请执行 Flyway V9 + V10：
+--   V9__operating_cost_management.sql
+--   V10__order_pricing_rules.sql
+--
+-- 主要对象：
+--   cost_sub_type_dict, operating_cost_entry, operating_cost_budget,
+--   cost_allocation_rule, integration_cost_ledger, driver,
+--   vehicle_maintenance_work_order, vehicle_insurance_policy,
+--   price_rule, order_line, orders(定价扩展列)
