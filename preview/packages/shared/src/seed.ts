@@ -162,6 +162,40 @@ export const seedUsers: User[] = [
     licenseExpiryDate: "2029-02-01",
     registeredAt: "2026-05-01T08:00:00.000Z",
     registrationSource: "SELF"
+  },
+  /** 管理端演示工号（与 seedPersonnel 同 id/手机号，可登录 users/login） */
+  {
+    id: "p1000001-0001-4000-8000-000000000001",
+    phone: "13800001001",
+    realName: "陈运营",
+    status: "ACTIVE",
+    realNameStatus: "APPROVED",
+    licenseStatus: "NONE",
+    licenseVerifyStatus: "NONE",
+    registeredAt: "2025-01-01T08:00:00.000Z",
+    registrationSource: "SELF"
+  },
+  {
+    id: "p1000001-0001-4000-8000-000000000002",
+    phone: "13800001002",
+    realName: "周财务",
+    status: "ACTIVE",
+    realNameStatus: "APPROVED",
+    licenseStatus: "NONE",
+    licenseVerifyStatus: "NONE",
+    registeredAt: "2025-01-01T08:00:00.000Z",
+    registrationSource: "SELF"
+  },
+  {
+    id: "p1000001-0001-4000-8000-000000000004",
+    phone: "13800001004",
+    realName: "刘客服",
+    status: "ACTIVE",
+    realNameStatus: "APPROVED",
+    licenseStatus: "NONE",
+    licenseVerifyStatus: "NONE",
+    registeredAt: "2025-01-01T08:00:00.000Z",
+    registrationSource: "SELF"
   }
 ];
 

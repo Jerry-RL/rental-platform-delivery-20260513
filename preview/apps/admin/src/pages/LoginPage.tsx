@@ -33,7 +33,9 @@ export function LoginPage() {
             方案演示
           </Badge>
           <CardTitle>管理端登录</CardTitle>
-          <p className="text-sm text-muted-foreground">任意密码即可 · 对接 POST /api/v1/users/login</p>
+          <p className="text-sm text-muted-foreground">
+            密码任意 · 须为种子用户或员工手机号（POST /api/v1/users/login）
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <label className="block text-sm">
@@ -50,7 +52,7 @@ export function LoginPage() {
             {loading ? "登录中…" : "进入管理后台"}
           </Button>
           <p className="text-xs text-muted-foreground">
-            演示账号：运营 13800001001 · 财务 13800001002 · 客服 13800001004
+            员工：13800001001 / 13800001002 / 13800001004 · C 端联调：13800138000
           </p>
         </CardContent>
       </Card>

@@ -178,22 +178,32 @@ export const handleMockRequest = async <T>(req: MockRequest): Promise<ApiRespons
 
   if (method === "POST" && pathname === "/api/v1/users/login") {
     const { phone } = body as LoginRequest;
-    const user = s.users.find((u) => u.phone === phone.trim());
-    if (!user) {
-      return fail(1001, "该手机号未注册，请先注册") as ApiResponse<T>;
+    const normalizedPhone = phone.trim();
+    const user = s.users.find((u) => u.phone === normalizedPhone);
+    if (user) {
+      const loginCheck = canUserLogin(s, user);
+      if (!loginCheck.ok) {
+        return fail(loginCheck.code, loginCheck.message) as ApiResponse<T>;
+      }
+      const account = resolveAccountContext(s, user.id)!;
+      return ok({
+        accessToken: `preview-token-${user.id}`,
+        refreshToken: `refresh-${user.id}`,
+        expiresIn: 7200,
+        user: { id: user.id, phone: user.phone, realName: user.realName },
+        account
+      } as T);
     }
-    const loginCheck = canUserLogin(s, user);
-    if (!loginCheck.ok) {
-      return fail(loginCheck.code, loginCheck.message) as ApiResponse<T>;
+    const staff = s.personnel.find((p) => p.phone === normalizedPhone && p.status === "ACTIVE");
+    if (staff) {
+      return ok({
+        accessToken: `preview-token-${staff.id}`,
+        refreshToken: `refresh-${staff.id}`,
+        expiresIn: 7200,
+        user: { id: staff.id, phone: staff.phone, realName: staff.name }
+      } as T, "管理端员工登录成功");
     }
-    const account = resolveAccountContext(s, user.id)!;
-    return ok({
-      accessToken: `preview-token-${user.id}`,
-      refreshToken: `refresh-${user.id}`,
-      expiresIn: 7200,
-      user: { id: user.id, phone: user.phone, realName: user.realName },
-      account
-    } as T);
+    return fail(1001, "该手机号未注册，请先注册") as ApiResponse<T>;
   }
 
   if (method === "GET" && pathname === "/api/v1/users/me") {
