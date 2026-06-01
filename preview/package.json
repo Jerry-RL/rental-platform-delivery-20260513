@@ -1,0 +1,17 @@
+{
+  "name": "rental-platform-preview",
+  "private": true,
+  "version": "1.0.0",
+  "description": "租车平台方案预览版（管理端 + H5，Mock API）",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm run dev -w @rental-preview/admin",
+    "dev:h5": "npm run dev -w @rental-preview/h5",
+    "build": "npm run build -w @rental-preview/shared && npm run build -w @rental-preview/admin && npm run build -w @rental-preview/h5",
+    "preview:admin": "npm run preview -w @rental-preview/admin",
+    "preview:h5": "npm run preview -w @rental-preview/h5"
+  }
+}

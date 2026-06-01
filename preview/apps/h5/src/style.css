@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  :root {
+    /* 简洁浅色系：低饱和主色 + 浅灰底 + 细线分割 */
+    --background: 210 25% 98%;
+    --foreground: 215 18% 32%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 18% 32%;
+    --primary: 205 48% 50%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 210 18% 96%;
+    --muted-foreground: 215 10% 52%;
+    --border: 210 14% 90%;
+    --accent: 205 35% 94%;
+    --accent-foreground: 215 18% 32%;
+    --destructive: 0 45% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 158 38% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 75% 54%;
+    --warning-foreground: 32 35% 28%;
+    --radius: 0.625rem;
+    /* 底部 Tab 栏占位（与 TabBar + safe-area 对齐） */
+    --h5-tab-bar: 3.5rem;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .card-surface {
+    @apply rounded-xl border border-border bg-card;
+  }
+
+  .chip-active {
+    @apply border-primary/40 bg-primary/10 text-primary;
+  }
+
+  .chip-idle {
+    @apply border-border bg-card text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .shadow-bar {
+    box-shadow: 0 -1px 0 hsl(var(--border)), 0 -4px 16px hsl(210 20% 50% / 0.06);
+  }
+
+  /** 固定底栏白底（结算栏 / 租车篮 / 协议 sheet 操作区） */
+  .bar-surface {
+    @apply border-t border-border bg-white shadow-bar;
+  }
+
+  /** 固定底栏贴在 Tab 之上（首页租车篮） */
+  .above-tab-bar {
+    bottom: calc(var(--h5-tab-bar) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /** 贴底弹层内按钮区：为 Tab + 安全区留白，面板本身可 bottom: 0 */
+  .pb-tab-bar {
+    padding-bottom: calc(var(--h5-tab-bar) + env(safe-area-inset-bottom, 0px));
+  }
+}
