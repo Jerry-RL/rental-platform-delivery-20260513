@@ -1,8 +1,8 @@
 ﻿openapi: 3.1.0
 info:
   title: Rental Users API
-  version: 1.3.0
-  description: 用户域接口（含 requestId 规范）
+  version: 1.4.0
+  description: 用户域接口（含 v1.9 认证细化、授信、开票抬头）
 servers:
   - url: https://api.rental.example.com
 paths:
@@ -153,6 +153,123 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiResponseApproval' }
+  /api/v1/users/{userId}/realname:
+    post:
+      summary: 提交实名认证
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitRealnameRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseRealnameVerify' }
+  /api/v1/users/{userId}/license:
+    post:
+      summary: 提交驾照认证
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitLicenseRequest' }
+      responses:
+        '201':
+          description: Created
+  /api/v1/users/{userId}/eligibility:
+    get:
+      summary: 查询用车资格（下单前）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: orgId
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseEligibility' }
+  /api/v1/orgs/{orgId}/credit-line:
+    get:
+      summary: 查询组织授信
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseCreditLine' }
+    put:
+      summary: 更新组织授信（需 MFA）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateCreditLineRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseCreditLine' }
+  /api/v1/orgs/{orgId}/invoice-titles:
+    get:
+      summary: 查询组织开票抬头列表
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: 新增开票抬头
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orgId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateInvoiceTitleRequest' }
+      responses:
+        '201':
+          description: Created
   /api/v1/orgs/{orgId}/approvals/{approvalId}:
     put:
       summary: 审批通过或驳回
@@ -286,6 +403,87 @@ components:
       properties:
         decision: { type: string, enum: [APPROVE, REJECT] }
         comment: { type: string }
+    SubmitRealnameRequest:
+      type: object
+      required: [realName, idNumber, idFrontUrl, idBackUrl]
+      properties:
+        realName: { type: string }
+        idNumber: { type: string, description: 传输层加密或 token 化 }
+        idFrontUrl: { type: string }
+        idBackUrl: { type: string }
+        faceVerifyRef: { type: string }
+    SubmitLicenseRequest:
+      type: object
+      required: [licenseNo, licenseClass, issueDate, expiryDate]
+      properties:
+        licenseNo: { type: string }
+        licenseClass: { type: string, example: C1 }
+        issueDate: { type: string, format: date }
+        expiryDate: { type: string, format: date }
+        licenseImageUrl: { type: string }
+    ApiResponseRealnameVerify:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/RealnameVerify' }
+    ApiResponseEligibility:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/EligibilitySnapshot' }
+    ApiResponseCreditLine:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/OrgCreditLine' }
+    RealnameVerify:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        status: { type: string, enum: [PENDING, APPROVED, REJECTED] }
+        rejectReason: { type: string }
+    EligibilitySnapshot:
+      type: object
+      properties:
+        snapshotId: { type: string, format: uuid }
+        eligible: { type: boolean }
+        realnameStatus: { type: string }
+        licenseStatus: { type: string }
+        licenseExpiryDate: { type: string, format: date }
+        blacklistFlag: { type: boolean }
+        orgStatus: { type: string }
+        creditAvailable: { type: number, format: double }
+    OrgCreditLine:
+      type: object
+      properties:
+        orgId: { type: string, format: uuid }
+        creditLimit: { type: number, format: double }
+        usedAmount: { type: number, format: double }
+        billingDays: { type: integer }
+        contractNo: { type: string }
+        validFrom: { type: string, format: date }
+        validTo: { type: string, format: date }
+        status: { type: string, enum: [INACTIVE, ACTIVE, SUSPENDED] }
+    UpdateCreditLineRequest:
+      type: object
+      properties:
+        creditLimit: { type: number, format: double }
+        billingDays: { type: integer }
+        contractNo: { type: string }
+        validFrom: { type: string, format: date }
+        validTo: { type: string, format: date }
+        mfaToken: { type: string }
+    CreateInvoiceTitleRequest:
+      type: object
+      required: [titleName, taxNo]
+      properties:
+        titleName: { type: string }
+        taxNo: { type: string }
+        isDefault: { type: boolean, default: false }
     User:
       type: object
       properties:
@@ -293,6 +491,8 @@ components:
         phone: { type: string }
         realName: { type: string }
         status: { type: string }
+        realnameStatus: { type: string, enum: [NOT_SUBMITTED, PENDING, APPROVED, REJECTED] }
+        blacklistFlag: { type: boolean }
     OrgAccount:
       type: object
       properties:
@@ -301,6 +501,8 @@ components:
         accountType: { type: string, enum: [B, G] }
         creditCode: { type: string }
         status: { type: string, enum: [PENDING, ACTIVE, FROZEN, CLOSED] }
+        qualificationStatus: { type: string, enum: [DRAFT, UNDER_REVIEW, ACTIVE, SUSPENDED, CLOSED] }
+        legalPersonName: { type: string }
         frozenAt: { type: string, format: date-time }
         frozenReason: { type: string }
         closedAt: { type: string, format: date-time }

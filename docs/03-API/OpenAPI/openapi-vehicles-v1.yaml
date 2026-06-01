@@ -1,8 +1,8 @@
 ﻿openapi: 3.1.0
 info:
   title: Rental Vehicles API
-  version: 1.1.0
-  description: 车辆域接口（含分页/排序/过滤）
+  version: 1.2.0
+  description: 车辆域接口（含 v1.9 statusCode/ACCIDENT_HOLD）
 servers:
   - url: https://api.rental.example.com
 paths:
@@ -32,6 +32,35 @@ paths:
           name: vehicleId
           required: true
           schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVehicle'
+  /api/v1/vehicles/{vehicleId}/status:
+    put:
+      summary: 更新车辆运营状态
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [statusCode]
+              properties:
+                statusCode:
+                  type: string
+                  enum: [AVAILABLE, RENTED, MAINTENANCE, ACCIDENT_HOLD, SCRAPPED]
+                reason: { type: string }
+                incidentId: { type: string, format: uuid, description: ACCIDENT_HOLD时关联事故单 }
       responses:
         '200':
           description: OK
@@ -81,5 +110,14 @@ components:
       properties:
         id: { type: string, format: uuid }
         plateNumber: { type: string }
-        status: { type: string }
+        engineNo: { type: string, description: 发动机号，违章查询必填 }
+        vin: { type: string, description: 车架号，违章查询必填 }
+        vehicleTypeCode:
+          type: string
+          enum: [SMALL, LARGE, NEW_ENERGY]
+          description: 映射数脉车辆类型
+        status: { type: string, deprecated: true }
+        statusCode:
+          type: string
+          enum: [AVAILABLE, RENTED, MAINTENANCE, ACCIDENT_HOLD, SCRAPPED]
         dailyPrice: { type: number, format: double }

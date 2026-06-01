@@ -43,6 +43,10 @@
 | 3002 | USER_STATUS_INVALID | 用户状态不可用 |
 | 3003 | LICENSE_EXPIRED | 驾照已过期 |
 | 3004 | IDENTITY_NOT_VERIFIED | 未实名 |
+| 3005 | DRIVER_NOT_VERIFIED | 实际驾驶人未通过认证 |
+| 3006 | ORG_NOT_ACTIVE | 企业资质未激活 |
+| 3007 | CREDIT_INSUFFICIENT | 授信额度不足 |
+| 3008 | TAX_NO_INVALID | 税号校验失败 |
 
 ### 4.2 车辆域（4xxx）
 
@@ -52,6 +56,7 @@
 | 4002 | VEHICLE_NOT_AVAILABLE | 车辆不可用 |
 | 4003 | VEHICLE_SLOT_CONFLICT | 车辆时间窗冲突 |
 | 4004 | VEHICLE_STATUS_INVALID | 车辆状态非法 |
+| 4005 | VEHICLE_ACCIDENT_HOLD | 车辆事故停运不可租 |
 
 ### 4.3 订单域（5xxx）
 
@@ -62,6 +67,10 @@
 | 5003 | ORDER_ALREADY_CANCELED | 订单已取消 |
 | 5004 | ORDER_ALREADY_COMPLETED | 订单已完成 |
 | 5005 | ORDER_CREATE_FAILED | 订单创建失败 |
+| 5006 | ORDER_NOT_IN_USE | 订单非使用中，不可上报事故 |
+| 5007 | INCIDENT_NOT_FOUND | 事故单不存在 |
+| 5008 | INCIDENT_STATUS_INVALID | 事故状态非法 |
+| 5009 | INCIDENT_PENDING_BLOCK | 存在未结案事故，禁止完成订单 |
 
 ### 4.4 支付域（6xxx）
 
@@ -81,6 +90,10 @@
 | 7002 | INVOICE_APPLY_INVALID | 发票申请非法 |
 | 7003 | BILL_NOT_SETTLED | 账单未结算 |
 | 7004 | INVOICE_GENERATE_FAILED | 发票生成失败 |
+| 7005 | PAYMENT_REF_ALREADY_EXISTS | 回款识别码已存在 |
+| 7006 | BANK_LINE_NOT_FOUND | 银行流水不存在 |
+| 7007 | BANK_LINE_ALREADY_MATCHED | 流水已匹配 |
+| 7008 | BANK_MATCH_AMOUNT_INVALID | 匹配金额非法 |
 
 ## 5. 系统错误
 

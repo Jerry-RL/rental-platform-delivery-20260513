@@ -3,9 +3,13 @@ create extension if not exists pgcrypto;
 create table if not exists vehicle (
   id uuid primary key default gen_random_uuid(),
   plate_number varchar(20) not null unique,
+  engine_no varchar(40),
+  vin varchar(40),
+  vehicle_type_code varchar(20) not null default 'SMALL',
   vehicle_type_id uuid not null,
   store_id uuid not null,
   status smallint not null default 0,
+  status_code varchar(30) not null default 'AVAILABLE',
   mileage_km bigint not null default 0,
   fuel_level smallint not null default 100,
   created_at timestamptz not null default now(),
@@ -30,3 +34,5 @@ create table if not exists vehicle_availability (
 
 create index if not exists idx_vehicle_availability_vehicle_time
   on vehicle_availability(vehicle_id, start_time, end_time);
+
+create index if not exists idx_vehicle_status_code on vehicle(status_code);

@@ -44,6 +44,7 @@ create table if not exists invoices (
   title_type varchar(20) not null,
   invoice_title varchar(255) not null,
   tax_no varchar(40),
+  invoice_title_id uuid,
   amount numeric(12,2) not null,
   status varchar(20) not null,
   pdf_url text,
@@ -66,6 +67,7 @@ create table if not exists finance_bills (
   confirmed_by uuid,
   last_payment_at timestamptz,
   reconciliation_status varchar(20) not null default 'PENDING',
+  payment_reference_code varchar(64) unique,
   due_date date,
   settled_at timestamptz,
   created_at timestamptz not null default now(),
@@ -95,6 +97,53 @@ create table if not exists finance_bill_payments (
 );
 
 create index if not exists idx_finance_bill_payments_bill_id on finance_bill_payments(bill_id);
+
+create table if not exists bank_statement_import (
+  id uuid primary key default gen_random_uuid(),
+  import_no varchar(40) not null unique,
+  source varchar(20) not null default 'CSV',
+  file_name varchar(255),
+  imported_by uuid,
+  line_count integer not null default 0,
+  matched_count integer not null default 0,
+  status varchar(20) not null default 'COMPLETED',
+  created_at timestamptz not null default now()
+);
+
+create table if not exists bank_statement_line (
+  id uuid primary key default gen_random_uuid(),
+  import_id uuid references bank_statement_import(id),
+  bank_txn_no varchar(100),
+  txn_time timestamptz not null,
+  counterparty_name varchar(255),
+  counterparty_account varchar(64),
+  debit_credit varchar(10) not null default 'CREDIT',
+  amount numeric(14,2) not null,
+  currency varchar(3) not null default 'CNY',
+  remark text,
+  payment_reference_code varchar(64),
+  match_status varchar(20) not null default 'UNMATCHED',
+  matched_bill_id uuid references finance_bills(id),
+  matched_payment_id uuid,
+  matched_at timestamptz,
+  matched_by uuid,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_bank_line_ref_code on bank_statement_line(payment_reference_code);
+create index if not exists idx_bank_line_match_status on bank_statement_line(match_status, txn_time desc);
+
+create table if not exists bank_statement_match (
+  id uuid primary key default gen_random_uuid(),
+  statement_line_id uuid not null references bank_statement_line(id),
+  bill_id uuid not null references finance_bills(id),
+  matched_amount numeric(14,2) not null,
+  match_rule varchar(40) not null,
+  operator_user_id uuid,
+  created_at timestamptz not null default now(),
+  unique (statement_line_id, bill_id)
+);
 
 create table if not exists consumer_dedup (
   id bigserial primary key,

@@ -1,7 +1,7 @@
 # 租车平台需求补充说明书（违章+GPS+地图）
 
-版本：v1.0  
-日期：2026-05-18  
+版本：v1.1  
+日期：2026-06-01  
 适用范围：在现有《租车平台需求规格说明书》基础上新增扩展能力
 
 ## 1. 背景与目标
@@ -21,7 +21,7 @@
 
 - 小程序端：起点位置输入、定位选点、车辆定位展示
 - 管理端：批量违章查询任务、查询配额配置、费用统计、到期提醒配置
-- 后端：聚合数据违章 API 对接、GPS 厂商 API 对接、任务调度、重试与审计
+- 后端：[数脉科技违章 API](https://www.shumaiapi.com/productDetail/25)（¥0.06/次，600元/1万次）对接、GPS 厂商 API 对接、任务调度、重试与审计
 
 ### 2.2 Out of Scope
 
@@ -40,11 +40,15 @@
 
 ### 4.1 批量违章查询
 
+- 供应商：**数脉科技** — 全国车辆违章详情查询（[产品页](https://www.shumaiapi.com/productDetail/25)）
+- 计费：**¥0.06/次**（按成功查询的车辆计次）；建议采购 **¥600/1万次** 套餐
+- 单车查询入参：车牌号、发动机号、车架号（VIN）、车辆类型（车辆主数据须维护）
 - 支持按车辆列表批量提交查询任务
 - 支持任务状态：`PENDING`、`RUNNING`、`PARTIAL_SUCCESS`、`SUCCESS`、`FAILED`
-- 支持结果回填与失败明细（按车辆维度）
+- 支持结果回填与失败明细（按车辆维度）：地点、行为、罚款、记分、城市等
 - 支持按月配额控制（默认每月2次，可配置）
-- 支持成本统计（单车单次成本、任务总成本、月累计）
+- 支持成本统计（`unit_cost` 默认 0.06、任务总成本、月累计）
+- 企业接入前须完成数脉侧 **应用场景审核**
 
 ### 4.2 GPS定位与轨迹
 
@@ -91,8 +95,10 @@ FUNCTION runBatchViolationQuery(tenantId, vehicleIds, operatorId):
   markTaskRunning(taskId)
 
   FOR vehicleId IN vehicleIds:
-    result = callViolationProvider(vehicleId)
+    v = loadVehicle(vehicleId)  // plate, engine_no, vin, vehicle_type_code
+    result = callShumaiViolationApi(v)  // provider=SHUMAI, unit_cost=0.06
     saveVehicleResult(taskId, vehicleId, result)
+    writeCostLedger(taskId, vehicleId, unit_cost=0.06, if result.billable)
 
   summary = aggregateTaskResult(taskId)
   saveTaskSummary(taskId, summary)

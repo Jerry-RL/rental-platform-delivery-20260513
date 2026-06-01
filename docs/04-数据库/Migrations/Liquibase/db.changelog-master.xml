@@ -21,4 +21,12 @@
     <sqlFile path="V4__init_payment_finance_service.sql" relativeToChangelogFile="true"/>
   </changeSet>
 
+  <changeSet id="5-v1-9-incident-auth-bank" author="ai">
+    <sqlFile path="V5__v1_9_incident_auth_bank.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+  <changeSet id="6-vehicle-shumai-fields" author="ai">
+    <sqlFile path="V6__vehicle_shumai_violation_fields.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
 </databaseChangeLog>

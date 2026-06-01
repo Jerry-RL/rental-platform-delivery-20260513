@@ -22,6 +22,11 @@ create table if not exists orders (
   surcharge_fee numeric(12,2) not null default 0,
   total_fee numeric(12,2) not null default 0,
   paid_amount numeric(12,2) not null default 0,
+  booker_user_id uuid,
+  actual_driver_user_id uuid,
+  eligibility_snapshot_id uuid,
+  incident_pending boolean not null default false,
+  credit_snapshot jsonb,
   remark text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -70,3 +75,71 @@ create table if not exists order_outbox (
 
 create index if not exists idx_order_outbox_status_created
   on order_outbox(status, created_at);
+
+create index if not exists idx_orders_incident_pending
+  on orders(incident_pending) where incident_pending = true;
+
+create table if not exists order_incident (
+  id uuid primary key default gen_random_uuid(),
+  incident_no varchar(40) not null unique,
+  order_id uuid not null references orders(id),
+  vehicle_id uuid not null,
+  reporter_user_id uuid not null,
+  incident_type varchar(30) not null,
+  occurred_at timestamptz not null,
+  location_text varchar(255),
+  location_lat numeric(10,7),
+  location_lng numeric(10,7),
+  police_report_no varchar(64),
+  insurance_company varchar(120),
+  insurance_policy_no varchar(64),
+  insurance_claim_status varchar(30),
+  has_injury boolean not null default false,
+  description text,
+  status varchar(30) not null default 'REPORTED',
+  is_primary boolean not null default true,
+  vehicle_hold_applied boolean not null default false,
+  assignee_user_id uuid,
+  resolved_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  version integer not null default 0,
+  is_deleted boolean not null default false,
+  check (incident_type in ('COLLISION', 'SCRATCH', 'THEFT', 'OTHER'))
+);
+
+create index if not exists idx_order_incident_order on order_incident(order_id);
+create index if not exists idx_order_incident_status on order_incident(status);
+
+create table if not exists order_incident_attachment (
+  id uuid primary key default gen_random_uuid(),
+  incident_id uuid not null references order_incident(id),
+  file_type varchar(20) not null default 'IMAGE',
+  file_url text not null,
+  uploaded_by uuid,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists order_incident_status_log (
+  id uuid primary key default gen_random_uuid(),
+  incident_id uuid not null references order_incident(id),
+  from_status varchar(30),
+  to_status varchar(30) not null,
+  operator_user_id uuid not null,
+  remark text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists order_incident_fee (
+  id uuid primary key default gen_random_uuid(),
+  incident_id uuid not null references order_incident(id),
+  order_id uuid not null references orders(id),
+  fee_type varchar(40) not null,
+  amount numeric(12,2) not null,
+  currency varchar(3) not null default 'CNY',
+  status varchar(20) not null default 'PENDING_CONFIRM',
+  confirmed_by uuid,
+  confirmed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);

@@ -1,8 +1,8 @@
 ﻿openapi: 3.1.0
 info:
   title: Rental Orders API
-  version: 1.3.0
-  description: 订单域接口（含列表分页/排序/过滤）
+  version: 1.4.0
+  description: 订单域接口（含 v1.9 租期事故、代订车字段）
 servers:
   - url: https://api.rental.example.com
 paths:
@@ -38,6 +38,92 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiResponseOrder' }
+  /api/v1/orders/{orderId}/incidents:
+    get:
+      summary: 查询订单事故列表
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseIncidentList' }
+    post:
+      summary: 上报租期事故（订单须为使用中）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: orderId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateIncidentRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseIncident' }
+  /api/v1/incidents/{incidentId}:
+    get:
+      summary: 查询事故详情
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: incidentId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseIncident' }
+  /api/v1/incidents/{incidentId}/status:
+    put:
+      summary: 更新事故状态
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: incidentId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateIncidentStatusRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseIncident' }
+  /api/v1/incidents/{incidentId}/fees/confirm:
+    post:
+      summary: 确认事故费用并入账
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: incidentId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConfirmIncidentFeesRequest' }
+      responses:
+        '200':
+          description: OK
   /api/v1/orders/{orderId}:
     get:
       summary: 查询订单详情
@@ -119,6 +205,84 @@ components:
           type: string
           format: uuid
           description: serviceMode=WITH_DRIVER时由调度服务分配
+        bookerUserId:
+          type: string
+          format: uuid
+          description: 下单人，代订场景可与驾驶人不同
+        actualDriverUserId:
+          type: string
+          format: uuid
+          description: 实际驾驶人，B/G代订必填
+        eligibilitySnapshotId:
+          type: string
+          format: uuid
+          description: 下单前资格校验快照
+    CreateIncidentRequest:
+      type: object
+      required: [incidentType, occurredAt, locationText, photoUrls, contactPhone]
+      properties:
+        incidentType: { type: string, enum: [COLLISION, SCRATCH, THEFT, OTHER] }
+        occurredAt: { type: string, format: date-time }
+        locationText: { type: string }
+        locationLat: { type: number, format: double }
+        locationLng: { type: number, format: double }
+        photoUrls:
+          type: array
+          minItems: 2
+          items: { type: string }
+        contactPhone: { type: string }
+        policeReportNo: { type: string }
+        insuranceCompany: { type: string }
+        insurancePolicyNo: { type: string }
+        hasInjury: { type: boolean, default: false }
+        description: { type: string }
+        applyVehicleHold: { type: boolean, default: true, description: 是否置车辆为ACCIDENT_HOLD }
+    UpdateIncidentStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [UNDER_REVIEW, INSURANCE_PROCESSING, RESOLVED, CLOSED] }
+        remark: { type: string }
+        insuranceClaimStatus: { type: string }
+    ConfirmIncidentFeesRequest:
+      type: object
+      required: [fees]
+      properties:
+        fees:
+          type: array
+          items:
+            type: object
+            required: [feeType, amount]
+            properties:
+              feeType: { type: string }
+              amount: { type: number, format: double }
+    ApiResponseIncident:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/Incident' }
+    ApiResponseIncidentList:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: array
+              items: { $ref: '#/components/schemas/Incident' }
+    Incident:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        incidentNo: { type: string }
+        orderId: { type: string, format: uuid }
+        vehicleId: { type: string, format: uuid }
+        incidentType: { type: string }
+        status: { type: string, enum: [REPORTED, UNDER_REVIEW, INSURANCE_PROCESSING, RESOLVED, CLOSED] }
+        hasInjury: { type: boolean }
+        vehicleHoldApplied: { type: boolean }
+        occurredAt: { type: string, format: date-time }
+        resolvedAt: { type: string, format: date-time }
     Order:
       type: object
       properties:
@@ -134,3 +298,7 @@ components:
           type: string
           description: 月结账期，格式YYYY-MM
         totalFee: { type: number, format: double }
+        bookerUserId: { type: string, format: uuid }
+        actualDriverUserId: { type: string, format: uuid }
+        incidentPending: { type: boolean }
+        eligibilitySnapshotId: { type: string, format: uuid }

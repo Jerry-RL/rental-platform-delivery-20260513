@@ -1,8 +1,8 @@
 ﻿openapi: 3.1.0
 info:
   title: Rental Finance API
-  version: 1.3.0
-  description: 财务域接口（含列表分页/排序/过滤）
+  version: 1.4.0
+  description: 财务域接口（含 v1.9 回款识别码、银行流水勾稽）
 servers:
   - url: https://api.rental.example.com
 paths:
@@ -83,6 +83,97 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiResponseBill' }
+  /api/v1/bills/{billId}/payment-reference:
+    post:
+      summary: 生成对公回款识别码
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: billId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponsePaymentReference' }
+  /api/v1/bills/{billId}/payment-guide:
+    get:
+      summary: 下载付款指引（户名/账号/识别码/金额）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: billId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponsePaymentGuide' }
+  /api/v1/bank-statements/import:
+    post:
+      summary: 导入银行流水（CSV/Excel）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseBankImport' }
+  /api/v1/bank-statements/lines:
+    get:
+      summary: 查询银行流水明细
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: matchStatus
+          schema: { type: string, enum: [UNMATCHED, AUTO_MATCHED, MANUAL_MATCHED, IGNORED] }
+      responses:
+        '200':
+          description: OK
+  /api/v1/bank-statements/lines/{lineId}/match:
+    post:
+      summary: 手工匹配流水至账单
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: lineId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MatchBankLineRequest' }
+      responses:
+        '200':
+          description: OK
+  /api/v1/bank-statements/unmatched:
+    get:
+      summary: 未匹配流水与账龄看板
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: query
+          name: agingBucket
+          schema: { type: string, enum: [0_30, 31_60, 61_90, 90_PLUS] }
+      responses:
+        '200':
+          description: OK
   /api/v1/bills/{billId}/confirm:
     put:
       summary: 确认账单（进入待支付）
@@ -168,8 +259,61 @@ components:
         titleType: { type: string, enum: [PERSONAL, COMPANY] }
         invoiceTitle: { type: string }
         taxNo: { type: string }
+        invoiceTitleId: { type: string, format: uuid, description: B/G企业抬头ID }
         email: { type: string }
         billId: { type: string, format: uuid }
+    ApiResponsePaymentReference:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                billId: { type: string, format: uuid }
+                paymentReferenceCode: { type: string }
+    ApiResponsePaymentGuide:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                payeeName: { type: string }
+                payeeAccount: { type: string }
+                paymentReferenceCode: { type: string }
+                amountDue: { type: number, format: double }
+                remarkTemplate: { type: string }
+    ApiResponseBankImport:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                importId: { type: string, format: uuid }
+                importNo: { type: string }
+                lineCount: { type: integer }
+                autoMatchedCount: { type: integer }
+    MatchBankLineRequest:
+      type: object
+      required: [billId, matchedAmount]
+      properties:
+        billId: { type: string, format: uuid }
+        matchedAmount: { type: number, format: double }
+        matchRule: { type: string, enum: [MANUAL], default: MANUAL }
+    BankStatementLine:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        txnTime: { type: string, format: date-time }
+        amount: { type: number, format: double }
+        paymentReferenceCode: { type: string }
+        matchStatus: { type: string }
+        matchedBillId: { type: string, format: uuid }
+        remark: { type: string }
     CreateBillRequest:
       type: object
       required: [billingAccountId, accountType, billingPeriod]
@@ -212,4 +356,6 @@ components:
         confirmedBy: { type: string, format: uuid }
         lastPaymentAt: { type: string, format: date-time }
         reconciliationStatus: { type: string, enum: [PENDING, DONE, FAILED] }
+        paymentReferenceCode: { type: string, description: 对公回款识别码 }
         dueDate: { type: string, format: date }
+        agingDays: { type: integer, description: 账龄天数 }
