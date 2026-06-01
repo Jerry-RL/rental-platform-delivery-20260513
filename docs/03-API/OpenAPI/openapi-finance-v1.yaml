@@ -1,8 +1,8 @@
 ﻿openapi: 3.1.0
 info:
   title: Rental Finance API
-  version: 1.4.0
-  description: 财务域接口（含 v1.9 回款识别码、银行流水勾稽）
+  version: 1.5.0
+  description: 财务域接口（Invoice Adapter、诺诺/百望回调、红冲、合并开票）
 servers:
   - url: https://api.rental.example.com
 paths:
@@ -37,6 +37,122 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ApiResponseInvoice' }
+  /api/v1/invoices/{invoiceId}:
+    get:
+      summary: 查询发票详情（含明细行）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: invoiceId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseInvoiceDetail' }
+  /api/v1/invoices/{invoiceId}/issue:
+    post:
+      summary: 提交 Invoice Adapter 开票（诺诺/百望）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: invoiceId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IssueInvoiceRequest' }
+      responses:
+        '202':
+          description: Accepted（异步 ISSUING）
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseInvoice' }
+  /api/v1/invoices/{invoiceId}/red-flush:
+    post:
+      summary: 红冲数电发票
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: invoiceId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RedFlushInvoiceRequest' }
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseInvoice' }
+  /api/v1/invoices/{invoiceId}/manual-record:
+    post:
+      summary: 人工回录发票（MANUAL 兜底）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: invoiceId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ManualRecordInvoiceRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiResponseInvoice' }
+  /api/v1/bills/{billId}/invoices/issue-batch:
+    post:
+      summary: 按 B/G 账单合并开票
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: billId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/IssueBillInvoiceBatchRequest' }
+      responses:
+        '202':
+          description: Accepted
+  /api/v1/integrations/invoice/callback/nuonuo:
+    post:
+      summary: 诺诺开票回调
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
+  /api/v1/integrations/invoice/callback/baiwang:
+    post:
+      summary: 百望开票回调
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200':
+          description: OK
   /api/v1/bills:
     get:
       summary: 查询账单列表（B/G端）
@@ -260,8 +376,67 @@ components:
         invoiceTitle: { type: string }
         taxNo: { type: string }
         invoiceTitleId: { type: string, format: uuid, description: B/G企业抬头ID }
+        invoiceCategory: { type: string, enum: [SPECIAL, NORMAL], default: NORMAL }
         email: { type: string }
+        phone: { type: string }
         billId: { type: string, format: uuid }
+        lines:
+          type: array
+          items: { $ref: '#/components/schemas/InvoiceLineItemInput' }
+        remark: { type: string }
+        idempotencyKey: { type: string, maxLength: 100 }
+    IssueInvoiceRequest:
+      type: object
+      properties:
+        provider: { type: string, enum: [NUONUO, BAIWANG], description: 不传则用租户默认 }
+        idempotencyKey: { type: string }
+        autoSubmit: { type: boolean, default: true }
+    RedFlushInvoiceRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+        idempotencyKey: { type: string }
+    ManualRecordInvoiceRequest:
+      type: object
+      required: [providerInvoiceNo, pdfUrl]
+      properties:
+        providerInvoiceNo: { type: string }
+        pdfUrl: { type: string }
+        ofdUrl: { type: string }
+        issuedAt: { type: string, format: date-time }
+        remark: { type: string }
+    IssueBillInvoiceBatchRequest:
+      type: object
+      properties:
+        provider: { type: string, enum: [NUONUO, BAIWANG] }
+        invoiceCategory: { type: string, enum: [SPECIAL, NORMAL], default: SPECIAL }
+        mergeByTitle: { type: boolean, default: true }
+        idempotencyKey: { type: string }
+    InvoiceLineItemInput:
+      type: object
+      required: [itemName, taxClassCode, taxRate, amountIncTax]
+      properties:
+        itemName: { type: string }
+        taxClassCode: { type: string, example: '3040502020000000000' }
+        taxRate: { type: number, format: double, example: 0.13 }
+        quantity: { type: number, format: double, default: 1 }
+        unit: { type: string, default: 次 }
+        amountIncTax: { type: number, format: double }
+        orderId: { type: string, format: uuid }
+        plateNumber: { type: string }
+    ApiResponseInvoiceDetail:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                invoice: { $ref: '#/components/schemas/Invoice' }
+                lines:
+                  type: array
+                  items: { $ref: '#/components/schemas/InvoiceLineItem' }
     ApiResponsePaymentReference:
       allOf:
         - $ref: '#/components/schemas/ApiBase'
@@ -336,9 +511,51 @@ components:
         id: { type: string, format: uuid }
         orderId: { type: string, format: uuid }
         billId: { type: string, format: uuid }
-        invoiceNo: { type: string }
+        invoiceNo: { type: string, description: 平台发票申请号 }
+        providerInvoiceNo: { type: string, description: 数电发票号码 }
         amount: { type: number, format: double }
-        status: { type: string }
+        amountExTax: { type: number, format: double }
+        taxAmount: { type: number, format: double }
+        taxRate: { type: number, format: double }
+        status:
+          type: string
+          enum: [DRAFT, PENDING_APPROVAL, ISSUING, ISSUED, ISSUE_FAILED, RED_FLUSHING, RED_FLUSHED, CANCELLED]
+        provider: { type: string, enum: [NUONUO, BAIWANG, MANUAL] }
+        invoiceType: { type: string, enum: [BLUE, RED] }
+        invoiceCategory: { type: string, enum: [SPECIAL, NORMAL] }
+        titleType: { type: string, enum: [PERSONAL, COMPANY] }
+        invoiceTitle: { type: string }
+        taxNo: { type: string }
+        invoiceTitleId: { type: string, format: uuid }
+        redFlushRefId: { type: string, format: uuid }
+        externalReqNo: { type: string }
+        paymentReferenceCode: { type: string }
+        remark: { type: string }
+        pdfUrl: { type: string }
+        ofdUrl: { type: string }
+        xmlUrl: { type: string }
+        buyerEmail: { type: string }
+        buyerPhone: { type: string }
+        issuedAt: { type: string, format: date-time }
+        issueErrorCode: { type: string }
+        issueErrorMessage: { type: string }
+        invoiceBatchId: { type: string, format: uuid }
+        retryCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+    InvoiceLineItem:
+      type: object
+      properties:
+        lineNo: { type: integer }
+        itemName: { type: string }
+        taxClassCode: { type: string }
+        taxRate: { type: number, format: double }
+        quantity: { type: number, format: double }
+        unit: { type: string }
+        amountExTax: { type: number, format: double }
+        taxAmount: { type: number, format: double }
+        amountIncTax: { type: number, format: double }
+        orderId: { type: string, format: uuid }
+        plateNumber: { type: string }
     Bill:
       type: object
       properties:

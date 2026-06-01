@@ -1,8 +1,8 @@
 ﻿openapi: 3.1.0
 info:
   title: Rental Vehicles API
-  version: 1.2.0
-  description: 车辆域接口（含 v1.9 statusCode/ACCIDENT_HOLD）
+  version: 1.3.0
+  description: 车辆域接口（含 GPS 供应商绑定、定位/轨迹）
 servers:
   - url: https://api.rental.example.com
 paths:
@@ -68,6 +68,71 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponseVehicle'
+  /api/v1/vehicles/{vehicleId}/location:
+    get:
+      summary: 查询车辆实时定位（按 gps_provider 路由厂商）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVehicleLocation'
+  /api/v1/vehicles/{vehicleId}/track:
+    get:
+      summary: 查询历史轨迹
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: startTime
+          required: true
+          schema: { type: string, format: date-time }
+        - in: query
+          name: endTime
+          required: true
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVehicleTrack'
+  /api/v1/vehicles/{vehicleId}/gps-binding:
+    put:
+      summary: 绑定 GPS 终端（图强/承载）
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [gpsProvider, gpsTerminalId]
+              properties:
+                gpsProvider:
+                  type: string
+                  enum: [TUQIANG, CHENGZAI_VIDEO_IOT]
+                gpsTerminalId: { type: string }
+                gpsSim: { type: string }
+      responses:
+        '200':
+          description: OK
 components:
   parameters:
     XRequestId: { in: header, name: X-Request-Id, required: false, schema: { type: string } }
@@ -121,3 +186,46 @@ components:
           type: string
           enum: [AVAILABLE, RENTED, MAINTENANCE, ACCIDENT_HOLD, SCRAPPED]
         dailyPrice: { type: number, format: double }
+        gpsProvider:
+          type: string
+          enum: [TUQIANG, CHENGZAI_VIDEO_IOT]
+          description: TUQIANG=图强/途强物联，CHENGZAI_VIDEO_IOT=承载视频物联
+        gpsTerminalId: { type: string }
+        gpsSim: { type: string }
+    VehicleLocation:
+      type: object
+      properties:
+        vehicleId: { type: string, format: uuid }
+        provider: { type: string, enum: [TUQIANG, CHENGZAI_VIDEO_IOT] }
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        speedKmh: { type: number, format: double }
+        heading: { type: integer }
+        locatedAt: { type: string, format: date-time }
+        onlineStatus: { type: string, enum: [ONLINE, OFFLINE, UNKNOWN] }
+        address: { type: string }
+    TrackPoint:
+      type: object
+      properties:
+        latitude: { type: number, format: double }
+        longitude: { type: number, format: double }
+        speedKmh: { type: number, format: double }
+        locatedAt: { type: string, format: date-time }
+    ApiResponseVehicleLocation:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data: { $ref: '#/components/schemas/VehicleLocation' }
+    ApiResponseVehicleTrack:
+      allOf:
+        - $ref: '#/components/schemas/ApiBase'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                vehicleId: { type: string, format: uuid }
+                points:
+                  type: array
+                  items: { $ref: '#/components/schemas/TrackPoint' }

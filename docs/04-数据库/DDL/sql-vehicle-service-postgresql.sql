@@ -10,6 +10,10 @@ create table if not exists vehicle (
   store_id uuid not null,
   status smallint not null default 0,
   status_code varchar(30) not null default 'AVAILABLE',
+  gps_provider varchar(30),
+  gps_terminal_id varchar(64),
+  gps_sim varchar(20),
+  gps_bind_at timestamptz,
   mileage_km bigint not null default 0,
   fuel_level smallint not null default 100,
   created_at timestamptz not null default now(),
@@ -36,3 +40,4 @@ create index if not exists idx_vehicle_availability_vehicle_time
   on vehicle_availability(vehicle_id, start_time, end_time);
 
 create index if not exists idx_vehicle_status_code on vehicle(status_code);
+create index if not exists idx_vehicle_gps_provider on vehicle(gps_provider);

@@ -94,6 +94,10 @@
 | 7006 | BANK_LINE_NOT_FOUND | 银行流水不存在 |
 | 7007 | BANK_LINE_ALREADY_MATCHED | 流水已匹配 |
 | 7008 | BANK_MATCH_AMOUNT_INVALID | 匹配金额非法 |
+| 7009 | INVOICE_ALREADY_ISSUED | 发票已开具 |
+| 7010 | INVOICE_ISSUING | 发票开具中 |
+| 7011 | INVOICE_PROVIDER_ERROR | 开票服务商返回错误 |
+| 7012 | INVOICE_RED_FLUSH_INVALID | 红冲条件不满足 |
 
 ## 5. 系统错误
 

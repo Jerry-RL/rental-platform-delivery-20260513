@@ -1,6 +1,6 @@
 # 租车平台需求补充说明书（违章+GPS+地图）
 
-版本：v1.1  
+版本：v1.2  
 日期：2026-06-01  
 适用范围：在现有《租车平台需求规格说明书》基础上新增扩展能力
 
@@ -21,7 +21,7 @@
 
 - 小程序端：起点位置输入、定位选点、车辆定位展示
 - 管理端：批量违章查询任务、查询配额配置、费用统计、到期提醒配置
-- 后端：[数脉科技违章 API](https://www.shumaiapi.com/productDetail/25)（¥0.06/次，600元/1万次）对接、GPS 厂商 API 对接、任务调度、重试与审计
+- 后端：数脉违章 API 对接；**GPS 备选** — [图强（途强物联）](https://www.tuqiang.com.cn/) 与 **承载视频物联**（详见 [integration-gps-providers-v1.md](./03-API/规范/integration-gps-providers-v1.md)）
 
 ### 2.2 Out of Scope
 
@@ -50,12 +50,28 @@
 - 支持成本统计（`unit_cost` 默认 0.06、任务总成本、月累计）
 - 企业接入前须完成数脉侧 **应用场景审核**
 
-### 4.2 GPS定位与轨迹
+### 4.2 GPS定位与轨迹（备选供应商）
 
-- 支持车辆实时定位查询（经纬度、速度、时间戳）
-- 支持历史轨迹回放（按车辆+时间段）
-- 支持在线状态展示（在线/离线/未知）
-- 支持接口超时重试与熔断降级
+一期通过 Adapter 支持两家备选方案，**实施阶段择一为主**（或按车队分 provider）：
+
+| 编码 | 供应商 | 一期能力 | 对接方式 |
+|---|---|---|---|
+| `TUQIANG` | **图强（途强物联）** | 实时定位、历史轨迹、在线状态 | 厂商开放 API（HTTP/MQTT） |
+| `CHENGZAI_VIDEO_IOT` | **承载视频物联** | 定位、轨迹；视频预览/回放（P1/P2） | 开放平台 API 或 JT808/1078 网关 |
+
+**共性需求**
+
+- 每车绑定 `gps_provider` + `gps_terminal_id`
+- 支持车辆实时定位（经纬度、速度、时间戳、在线状态）
+- 支持历史轨迹回放（车辆 + 时间范围）
+- 位置缓存 TTL 30s；轨迹保留周期可配置（默认 90 天）
+- 接口超时重试、熔断降级（FR-EXT-008）
+- 地图展示优先 **GPS 厂商透传** 或低风险地图能力（BR-027）
+
+**承载视频物联增量（可选）**
+
+- 实时视频预览、录像回放（租车纠纷、事故取证）
+- 报警事件订阅（超速、围栏等）写入平台告警/工单
 
 ### 4.3 到期提醒
 
@@ -114,7 +130,14 @@ FUNCTION getVehicleLocation(vehicleId):
   IF cache is valid:
     RETURN cache
 
-  response = callGpsProviderRealtimeApi(vehicleId)
+  binding = loadGpsBinding(vehicleId)  // gps_provider, gps_terminal_id
+  IF binding.provider == TUQIANG:
+    response = tuqiangAdapter.queryLocation(binding.terminal_id)
+  ELSE IF binding.provider == CHENGZAI_VIDEO_IOT:
+    response = chengZaiAdapter.queryLocation(binding.terminal_id)
+  ELSE:
+    RETURN error("GPS_PROVIDER_NOT_CONFIGURED")
+
   normalized = normalizeGpsPayload(response)
   saveLocationCache(vehicleId, normalized, ttl=30s)
   RETURN normalized

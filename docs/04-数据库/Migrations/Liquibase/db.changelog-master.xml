@@ -29,4 +29,12 @@
     <sqlFile path="V6__vehicle_shumai_violation_fields.sql" relativeToChangelogFile="true"/>
   </changeSet>
 
+  <changeSet id="7-vehicle-gps-provider-binding" author="ai">
+    <sqlFile path="V7__vehicle_gps_provider_binding.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
+  <changeSet id="8-invoice-adapter-fields" author="ai">
+    <sqlFile path="V8__invoice_adapter_fields.sql" relativeToChangelogFile="true"/>
+  </changeSet>
+
 </databaseChangeLog>
