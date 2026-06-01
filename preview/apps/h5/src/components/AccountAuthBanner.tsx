@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import {
   orgMemberStatusLabel,
   orgStatusLabel,
+  RENTAL_COMPANY_CONTACT,
   type AccountContext
 } from "@rental-preview/shared";
 import { cn } from "../lib/utils";
@@ -62,10 +63,22 @@ export const AccountAuthBanner = ({ account, className }: AccountAuthBannerProps
       </p>
 
       {!account.accountAuthOk && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          B/G 端用户须企业资质与成员账号均通过认证后方可选车下单；认证由管理端审批。
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          B/G 端须企业资质与成员账号均通过认证后方可选车；认证由管理端审批。
+          咨询请致电租车公司{" "}
+          <a
+            href={`tel:${RENTAL_COMPANY_CONTACT.servicePhone.replace(/-/g, "")}`}
+            className="font-medium text-primary"
+          >
+            {RENTAL_COMPANY_CONTACT.servicePhone}
+          </a>
+          {account.member?.contactPhone ? (
+            <span className="text-foreground"> · 已留联 {account.member.contactPhone}</span>
+          ) : (
+            <span className="text-warning"> · 或在「我的」留下您的电话</span>
+          )}
           <Link to="/me" className="ml-1 text-primary underline-offset-2">
-            查看我的认证
+            查看认证
           </Link>
         </p>
       )}

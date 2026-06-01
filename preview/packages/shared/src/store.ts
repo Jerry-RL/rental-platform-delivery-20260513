@@ -30,6 +30,8 @@ import {
   seedViolationQuota
 } from "./seed";
 import { reconcileAllOrderStatuses } from "./order-status";
+import { refreshAllIncidentEnrichment } from "./incident-rules";
+import { refreshAllViolationAttribution } from "./violation-attribution";
 import { normalizeVehicleImages } from "./vehicle-images";
 import type {
   BankTransaction,
@@ -101,6 +103,8 @@ export const previewStore = {
 };
 
 reconcileAllOrderStatuses(previewStore);
+refreshAllViolationAttribution(previewStore);
+refreshAllIncidentEnrichment(previewStore);
 
 export const resetPreviewStore = () => {
   Object.assign(previewStore, {
@@ -135,6 +139,7 @@ export const resetPreviewStore = () => {
     dashboard: { ...seedDashboard }
   });
   reconcileAllOrderStatuses(previewStore);
+  refreshAllViolationAttribution(previewStore);
 };
 
 export type PreviewStore = typeof previewStore;

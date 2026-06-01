@@ -64,6 +64,17 @@ export const refundStatusLabel: Record<RefundStatus, string> = {
   COMPLETED: "已退款"
 };
 
+export const insuranceClaimStatusLabel: Record<
+  import("./types").InsuranceClaimStatus,
+  string
+> = {
+  NOT_REPORTED: "未报案",
+  REPORTED: "已报案",
+  ASSESSING: "定损中",
+  PAID: "已赔付",
+  DENIED: "拒赔"
+};
+
 export const incidentStatusLabel: Record<IncidentStatus, string> = {
   REPORTED: "已上报",
   UNDER_REVIEW: "审核中",
@@ -230,6 +241,37 @@ export const violationPaymentStatusLabel: Record<
 > = {
   UNPAID: "未缴款",
   PAID: "已缴款"
+};
+
+export const responsiblePartyLabel: Record<
+  import("./types").ViolationResponsibleParty,
+  string
+> = {
+  RENTER: "承租人",
+  ENTERPRISE: "企业客户",
+  PLATFORM_DRIVER: "平台司机",
+  UNKNOWN: "待认定"
+};
+
+export const liabilityStatusLabel: Record<
+  import("./types").ViolationLiabilityStatus,
+  string
+> = {
+  PENDING: "待确认",
+  CONFIRMED: "已确认",
+  BILLED: "已入账",
+  SETTLED: "已结清",
+  WAIVED: "已豁免"
+};
+
+export const serviceContextLabel: Record<
+  import("./types").ViolationServiceContext,
+  string
+> = {
+  SELF_DRIVE: "自驾租期",
+  WITH_DRIVER: "包车租期",
+  MIXED: "混合租期",
+  OUTSIDE_RENTAL: "非租期"
 };
 
 export const violationBatchScopeLabel: Record<

@@ -6,7 +6,6 @@ import {
   feeTypeLabel,
   formatMoney,
   getFulfillmentStepIndex,
-  incidentStatusLabel,
   invoiceStatusLabel,
   orderFinancialStatuses,
   orderFulfillmentSteps,
@@ -18,6 +17,7 @@ import {
   serviceModeLabel,
   settlementModeLabel,
   ticketStatusLabel,
+  violationPaymentStatusLabel,
   timeUnitLabel,
   vehicleStatusLabel,
   type OrderDetail
@@ -292,15 +292,42 @@ export function OrderDetailView({ detail, onAdvanceStatus, advancing }: OrderDet
         </DetailSection>
       )}
 
+      {detail.violations.length > 0 && (
+        <DetailSection title="关联违章">
+          {detail.violations.map((v) => (
+            <div key={v.id} className="rounded-md border border-border p-2">
+              <Row label="行为" value={v.behavior ?? v.violationCode} />
+              <Row label="时间" value={fmtTime(v.violationTime)} />
+              <Row label="罚款/扣分" value={`${formatMoney(v.fineAmount)} · ${v.points} 分`} />
+              <Row label="应付" value={formatMoney(v.totalDue)} />
+              <Row label="责任方" value={v.responsiblePartyLabel} />
+              <Row label="场景" value={v.serviceContextLabel} />
+              <Row label="缴款" value={violationPaymentStatusLabel[v.status]} />
+              <Row label="追责状态" value={v.liabilityStatusLabel} />
+            </div>
+          ))}
+        </DetailSection>
+      )}
+
       {(detail.incidents.length > 0 || detail.tickets.length > 0) && (
-        <DetailSection title="事故与工单">
+        <DetailSection title="租期事故与工单">
           {detail.incidents.map((inc) => (
             <div key={inc.id} className="rounded-md border border-warning/40 bg-warning/5 p-2">
               <Row label="类型" value={inc.incidentType} />
-              <Row label="状态" value={incidentStatusLabel[inc.status]} />
+              <Row label="状态" value={inc.statusLabel} />
+              <Row label="责任" value={inc.responsiblePartyLabel} />
+              <Row label="场景" value={inc.serviceContextLabel} />
               <Row label="地点" value={inc.location} />
-              <Row label="预估费用" value={formatMoney(inc.estimatedCost)} />
+              {inc.estimatedCost > 0 && (
+                <Row label="预估费用" value={formatMoney(inc.estimatedCost)} />
+              )}
               {inc.pauseBilling && <Badge variant="warning">暂停计费</Badge>}
+              <Link
+                to={`/incidents/${inc.id}`}
+                className="mt-1 inline-block text-xs text-primary hover:underline"
+              >
+                查看事故详情 →
+              </Link>
             </div>
           ))}
           {detail.tickets.map((t) => (

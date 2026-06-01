@@ -1,5 +1,7 @@
+import { resolveAccountContext } from "./account-segment";
 import type { PreviewStore } from "./store";
 import type {
+  AccountContext,
   OrgAccount,
   OrgAccountDetail,
   OrgMember,
@@ -139,4 +141,34 @@ export const createOrgMember = (
   };
   store.orgMembers.unshift(member);
   return { member, createdUser };
+};
+
+const MOBILE_RE = /^1\d{10}$/;
+
+export const validateMemberContactPhone = (phone: string): { ok: true } | { ok: false; message: string } => {
+  const trimmed = phone.trim();
+  if (!trimmed) return { ok: false, message: "请填写联系电话" };
+  if (!MOBILE_RE.test(trimmed)) return { ok: false, message: "请输入 11 位有效手机号" };
+  return { ok: true };
+};
+
+/** B/G 成员在 H5 留存审批联系手机 */
+export const updateOrgMemberContactPhone = (
+  store: PreviewStore,
+  userId: string,
+  contactPhone: string
+): { member: OrgMember; account: AccountContext } => {
+  const valid = validateMemberContactPhone(contactPhone);
+  if (!valid.ok) throw new Error(valid.message);
+
+  const membership = store.orgMembers.find((m) => m.userId === userId);
+  if (!membership) throw new Error("当前用户非企业成员");
+
+  const updated: OrgMember = { ...membership, contactPhone: contactPhone.trim() };
+  const idx = store.orgMembers.findIndex((m) => m.id === membership.id);
+  if (idx >= 0) store.orgMembers[idx] = updated;
+
+  const account = resolveAccountContext(store, userId);
+  if (!account) throw new Error("账号上下文解析失败");
+  return { member: updated, account };
 };

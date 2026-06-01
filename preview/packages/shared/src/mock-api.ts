@@ -31,7 +31,8 @@ import type {
   RegisterRequest,
   SubmitLicenseRequest,
   SubmitRealnameRequest,
-  UserLicenseRecord
+  UserLicenseRecord,
+  UpdateOrgMemberContactRequest
 } from "./types";
 import { tryHandleAdminCrud } from "./admin-crud-handlers";
 import { buildOrderDetail } from "./order-detail";
@@ -44,6 +45,22 @@ import {
   detectViolationHandleUpdates,
   filterViolations
 } from "./violation-batch";
+import {
+  buildUserIncidentSummary,
+  canReportIncident,
+  createIncidentReport,
+  enrichIncident,
+  getIncidentById,
+  listUserIncidents,
+  refreshAllIncidentEnrichment
+} from "./incident-rules";
+import {
+  buildUserViolationSummary,
+  listAdminViolations,
+  listUserViolations,
+  refreshAllViolationAttribution
+} from "./violation-attribution";
+import type { CreateIncidentReportRequest } from "./types";
 import type { CreateViolationBatchRequest } from "./types";
 import { VEHICLE_IMAGE_MAX_BYTES } from "./upload";
 import {
@@ -51,6 +68,7 @@ import {
   createOrgMember,
   filterOrgMembers,
   filterOrgs,
+  updateOrgMemberContactPhone,
   type CreateOrgMemberRequest
 } from "./org-admin";
 import { buildDriverAdminProfile } from "./driver-admin-profile";
@@ -178,6 +196,75 @@ export const handleMockRequest = async <T>(req: MockRequest): Promise<ApiRespons
     if (!user) return fail(1004, "用户不存在") as ApiResponse<T>;
     const account = resolveAccountContext(s, uid)!;
     return ok({ user, account } as T);
+  }
+
+  if (method === "GET" && pathname === "/api/v1/users/me/violations/summary") {
+    const uid = ctxUserId ?? IDS.userC;
+    return ok(buildUserViolationSummary(s, uid) as T);
+  }
+
+  if (method === "GET" && pathname === "/api/v1/users/me/violations") {
+    const uid = ctxUserId ?? IDS.userC;
+    const items = listUserViolations(s, uid, q);
+    return ok(page(items, Number(q.pageNum) || 1, Number(q.pageSize) || 50) as T);
+  }
+
+  if (method === "GET" && pathname === "/api/v1/users/me/incidents/summary") {
+    const uid = ctxUserId ?? IDS.userC;
+    return ok(buildUserIncidentSummary(s, uid) as T);
+  }
+
+  if (method === "GET" && pathname === "/api/v1/users/me/incidents") {
+    const uid = ctxUserId ?? IDS.userC;
+    const items = listUserIncidents(s, uid);
+    return ok(page(items, Number(q.pageNum) || 1, Number(q.pageSize) || 20) as T);
+  }
+
+  if (method === "GET" && pathname.match(/^\/api\/v1\/incidents\/[^/]+$/)) {
+    const id = pathname.split("/").pop()!;
+    const uid = ctxUserId ?? IDS.userC;
+    const detail = getIncidentById(s, id, { userId: uid, client: "h5" });
+    if (!detail) return fail(1004, "事故记录不存在") as ApiResponse<T>;
+    return ok(detail as T);
+  }
+
+  if (method === "GET" && pathname.match(/^\/api\/v1\/admin\/incidents\/[^/]+$/)) {
+    const id = pathname.split("/")[5]!;
+    const detail = getIncidentById(s, id, { admin: true, client: "admin" });
+    if (!detail) return fail(1004, "事故记录不存在") as ApiResponse<T>;
+    return ok(detail as T);
+  }
+
+  if (method === "GET" && pathname.match(/^\/api\/v1\/orders\/[^/]+\/incident-gate$/)) {
+    const orderId = pathname.split("/")[4]!;
+    const uid = ctxUserId ?? IDS.userC;
+    return ok(canReportIncident(s, uid, orderId) as T);
+  }
+
+  if (method === "POST" && pathname.match(/^\/api\/v1\/orders\/[^/]+\/incidents$/)) {
+    const orderId = pathname.split("/")[4]!;
+    const uid = ctxUserId ?? IDS.userC;
+    try {
+      const req = { ...(body as CreateIncidentReportRequest), orderId };
+      const { incident, ticket } = createIncidentReport(s, uid, req, ts);
+      refreshAllIncidentEnrichment(s);
+      return ok({ incident, ticket } as T, "事故已上报，客服将尽快联系您");
+    } catch (e) {
+      return fail(3010, e instanceof Error ? e.message : "上报失败") as ApiResponse<T>;
+    }
+  }
+
+  if (method === "PUT" && pathname === "/api/v1/users/me/org-contact") {
+    const uid = ctxUserId ?? IDS.userC;
+    const user = s.users.find((u) => u.id === uid);
+    if (!user) return fail(1004, "用户不存在") as ApiResponse<T>;
+    try {
+      const { contactPhone } = body as UpdateOrgMemberContactRequest;
+      const { member, account } = updateOrgMemberContactPhone(s, uid, contactPhone);
+      return ok({ user, account, member } as T, "联系电话已保存");
+    } catch (e) {
+      return fail(1001, e instanceof Error ? e.message : "保存失败") as ApiResponse<T>;
+    }
   }
 
   if (method === "POST" && pathname === "/api/v1/users/register") {
@@ -454,11 +541,13 @@ export const handleMockRequest = async <T>(req: MockRequest): Promise<ApiRespons
     const req = body as CreateViolationBatchRequest;
     const result = createViolationBatchTask(s, req, ts);
     if (result.error) return fail(400, result.message) as ApiResponse<T>;
+    refreshAllViolationAttribution(s);
     return ok(result.task as T, result.message);
   }
 
   if (method === "POST" && pathname === "/api/v1/admin/violations/detect-handle-status") {
     const updated = detectViolationHandleUpdates(s);
+    refreshAllViolationAttribution(s);
     return ok({ updated } as T, `已检测并同步 ${updated} 条违章处理状态`);
   }
 
@@ -478,7 +567,12 @@ export const handleMockRequest = async <T>(req: MockRequest): Promise<ApiRespons
     return ok(page(items, Number(q.pageNum) || 1, Number(q.pageSize) || 20) as T);
   }
 
-  if (method === "GET" && pathname.match(/^\/api\/v1\/orders\/[^/]+$/) && !pathname.endsWith("/status")) {
+  if (
+    method === "GET" &&
+    pathname.match(/^\/api\/v1\/orders\/[^/]+$/) &&
+    !pathname.endsWith("/status") &&
+    !pathname.endsWith("/incident-gate")
+  ) {
     const id = pathname.split("/").pop()!;
     reconcileOrderStatusInStore(s, id);
     const detail = buildOrderDetail(s, id);
@@ -740,7 +834,8 @@ export const handleMockRequest = async <T>(req: MockRequest): Promise<ApiRespons
   }
 
   if (method === "GET" && pathname === "/api/v1/admin/incidents") {
-    return ok(page(s.incidents, Number(q.pageNum) || 1, Number(q.pageSize) || 20) as T);
+    const items = s.incidents.map((i) => enrichIncident(s, i));
+    return ok(page(items, Number(q.pageNum) || 1, Number(q.pageSize) || 20) as T);
   }
 
   if (method === "GET" && pathname === "/api/v1/admin/tickets") {
@@ -788,7 +883,7 @@ export const handleMockRequest = async <T>(req: MockRequest): Promise<ApiRespons
   }
 
   if (method === "GET" && pathname === "/api/v1/admin/violations") {
-    const items = filterViolations(s.violations, q);
+    const items = listAdminViolations(s, q);
     return ok(page(items, Number(q.pageNum) || 1, Number(q.pageSize) || 50) as T);
   }
 

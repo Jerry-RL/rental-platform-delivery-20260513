@@ -7,11 +7,11 @@ import {
   violationHandleStatusLabel,
   violationPaymentStatusLabel,
   violationTaskStatusLabel,
+  type UserViolationView,
   type CreateViolationBatchRequest,
   type PageResult,
   type ViolationBatchTask,
   type ViolationQuota,
-  type ViolationRecord,
   type ViolationSummary
 } from "@rental-preview/shared";
 import { AlertTriangle, ClipboardCheck, RefreshCw } from "lucide-react";
@@ -59,7 +59,7 @@ export function VehiclesViolationsTab() {
   const [quota, setQuota] = useState<ViolationQuota | null>(null);
   const [summary, setSummary] = useState<ViolationSummary | null>(null);
   const [violationTasks, setViolationTasks] = useState<ViolationBatchTask[]>([]);
-  const [violations, setViolations] = useState<ViolationRecord[]>([]);
+  const [violations, setViolations] = useState<UserViolationView[]>([]);
   const [listFilters, setListFilters] = useState(violationListFilters);
   const [batchMsg, setBatchMsg] = useState("");
   const [detectMsg, setDetectMsg] = useState("");
@@ -96,7 +96,7 @@ export function VehiclesViolationsTab() {
 
   const loadViolations = useCallback(async (filters: Record<string, string>) => {
     const path = buildQueryPath("/api/v1/admin/violations", { ...filters, pageSize: "80" });
-    const res = await api.get<PageResult<ViolationRecord>>(path);
+    const res = await api.get<PageResult<UserViolationView>>(path);
     if (res.ok && res.data) setViolations(res.data.items);
   }, []);
 
@@ -154,7 +154,7 @@ export function VehiclesViolationsTab() {
     void reloadList(next);
   };
 
-  const handleBadge = (status: ViolationRecord["handleStatus"]) => {
+  const handleBadge = (status: UserViolationView["handleStatus"]) => {
     const map = {
       UNPROCESSED: "warning" as const,
       IN_PROGRESS: "secondary" as const,
@@ -425,6 +425,26 @@ export function VehiclesViolationsTab() {
           rows={violations}
           columns={[
             { key: "plate", header: "车牌", render: (r) => r.plateNumber },
+            {
+              key: "order",
+              header: "订单",
+              render: (r) => r.orderNo ?? (r.orderId ? "已关联" : "—")
+            },
+            {
+              key: "party",
+              header: "责任方",
+              render: (r) => r.responsiblePartyLabel
+            },
+            {
+              key: "ctx",
+              header: "场景",
+              render: (r) => r.serviceContextLabel
+            },
+            {
+              key: "liability",
+              header: "追责",
+              render: (r) => r.liabilityStatusLabel
+            },
             { key: "time", header: "违章时间", render: (r) => r.violationTime.slice(0, 16).replace("T", " ") },
             { key: "code", header: "代码", render: (r) => r.violationCode ?? "—" },
             { key: "loc", header: "地点", render: (r) => r.location },

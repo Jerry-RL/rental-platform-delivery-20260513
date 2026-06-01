@@ -1,8 +1,8 @@
 import { buildDriverDetail, type DriverDetailView } from "./driver-detail";
-import { orderStatusLabel, serviceModeLabel, violationHandleStatusLabel, violationPaymentStatusLabel } from "./labels";
+import { orderStatusLabel, serviceModeLabel } from "./labels";
 import type { PreviewStore } from "./store";
-import type { Driver, Order, OrderStatus, ServiceMode, ViolationRecord } from "./types";
-import { normalizeViolation } from "./violation-batch";
+import type { Driver, Order, OrderStatus, ServiceMode } from "./types";
+import { listDriverViolations } from "./violation-attribution";
 
 export type DriverOrderHistoryItem = {
   id: string;
@@ -16,16 +16,6 @@ export type DriverOrderHistoryItem = {
   returnTime: string;
   chauffeurFee: number;
   totalFee: number;
-};
-
-export type DriverViolationAttribution = "EXPLICIT" | "RENTAL_PERIOD";
-
-export type DriverViolationItem = ViolationRecord & {
-  attribution: DriverViolationAttribution;
-  relatedOrderId?: string;
-  relatedOrderNo?: string;
-  paymentLabel: string;
-  handleLabel: string;
 };
 
 export type DriverAdminStats = {
@@ -44,7 +34,7 @@ export type DriverAdminProfile = {
   detail: DriverDetailView;
   stats: DriverAdminStats;
   orders: DriverOrderHistoryItem[];
-  violations: DriverViolationItem[];
+  violations: ReturnType<typeof listDriverViolations>;
 };
 
 const ACTIVE_STATUSES: OrderStatus[] = [
@@ -55,52 +45,6 @@ const ACTIVE_STATUSES: OrderStatus[] = [
 ];
 
 const COMPLETED_STATUSES: OrderStatus[] = ["COMPLETED", "SETTLED"];
-
-const inRentalPeriod = (order: Order, violationTime: string) =>
-  violationTime >= order.pickupTime && violationTime <= order.returnTime;
-
-const findRentalOrder = (orders: Order[], violation: ViolationRecord): Order | undefined =>
-  orders.find(
-    (o) => o.vehicleId === violation.vehicleId && inRentalPeriod(o, violation.violationTime)
-  );
-
-export const resolveDriverViolations = (
-  store: PreviewStore,
-  driverId: string
-): DriverViolationItem[] => {
-  const driverOrders = store.orders.filter((o) => o.driverId === driverId);
-  const seen = new Set<string>();
-  const items: DriverViolationItem[] = [];
-
-  for (const raw of store.violations) {
-    const v = normalizeViolation(raw);
-    let attribution: DriverViolationAttribution | null = null;
-    let related: Order | undefined;
-
-    if (v.driverId === driverId) {
-      attribution = "EXPLICIT";
-      related = findRentalOrder(driverOrders, v) ?? driverOrders.find((o) => o.vehicleId === v.vehicleId);
-    } else if (!v.driverId) {
-      related = findRentalOrder(driverOrders, v);
-      if (related) attribution = "RENTAL_PERIOD";
-    }
-
-    if (!attribution || seen.has(v.id)) continue;
-    seen.add(v.id);
-
-    items.push({
-      ...v,
-      attribution,
-      relatedOrderId: related?.id,
-      relatedOrderNo: related?.orderNo,
-      paymentLabel: violationPaymentStatusLabel[v.status],
-      handleLabel: violationHandleStatusLabel[v.handleStatus]
-    });
-  }
-
-  items.sort((a, b) => b.violationTime.localeCompare(a.violationTime));
-  return items;
-};
 
 export const buildDriverOrderHistory = (store: PreviewStore, driverId: string): DriverOrderHistoryItem[] =>
   store.orders
@@ -128,7 +72,7 @@ export const buildDriverAdminProfile = (
   if (!driver) return null;
 
   const orders = buildDriverOrderHistory(store, driverId);
-  const violations = resolveDriverViolations(store, driverId);
+  const violations = listDriverViolations(store, driverId);
 
   const stats: DriverAdminStats = {
     totalOrders: orders.length,

@@ -77,6 +77,11 @@ export function OrgsMembersTab() {
             )
           },
           { key: "dept", header: "部门", render: (r) => r.departmentName },
+          {
+            key: "contact",
+            header: "审批联系",
+            render: (r) => r.contactPhone ?? <span className="text-muted-foreground">—</span>
+          },
           { key: "roles", header: "角色", render: (r) => formatRoles(r.roleCodes) },
           { key: "scope", header: "数据范围", render: (r) => orgDataScopeLabel[r.dataScope] },
           {

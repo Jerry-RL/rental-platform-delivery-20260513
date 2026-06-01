@@ -13,6 +13,10 @@ import { DriverDetailPage } from "./pages/DriverDetailPage";
 import { OrderDetailPage } from "./pages/OrderDetailPage";
 import { OrdersPage } from "./pages/OrdersPage";
 import { VehicleDetailPage } from "./pages/VehicleDetailPage";
+import { ViolationsPage } from "./pages/ViolationsPage";
+import { IncidentDetailPage } from "./pages/IncidentDetailPage";
+import { IncidentsPage } from "./pages/IncidentsPage";
+import { ReportIncidentPage } from "./pages/ReportIncidentPage";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!getPreviewUserId()) return <Navigate to="/login" replace />;
@@ -35,6 +39,10 @@ export const router = createBrowserRouter([
       { path: "drivers/:id", element: <DriverDetailPage /> },
       { path: "license", element: <LicensePage /> },
       { path: "realname", element: <RealnamePage /> },
+      { path: "violations", element: <ViolationsPage /> },
+      { path: "incidents", element: <IncidentsPage /> },
+      { path: "incidents/:id", element: <IncidentDetailPage /> },
+      { path: "orders/:orderId/report-incident", element: <ReportIncidentPage /> },
       { path: "orders/:id", element: <OrderDetailPage /> },
       {
         element: <MobileShell />,

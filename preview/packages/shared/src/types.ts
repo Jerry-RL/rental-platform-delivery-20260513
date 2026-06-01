@@ -141,6 +141,12 @@ export type OrgMember = {
   roleCodes: string[];
   dataScope: "ORG" | "DEPT" | "SELF";
   status: OrgMemberStatus;
+  /** H5 企业认证：成员留存的审批联系手机 */
+  contactPhone?: string;
+};
+
+export type UpdateOrgMemberContactRequest = {
+  contactPhone: string;
 };
 
 /** 管理端列表：成员 + 企业 + 用户摘要 */
@@ -389,17 +395,103 @@ export type IncidentStatus =
   | "RESOLVED"
   | "CLOSED";
 
+export type InsuranceClaimStatus =
+  | "NOT_REPORTED"
+  | "REPORTED"
+  | "ASSESSING"
+  | "PAID"
+  | "DENIED";
+
 export type Incident = {
   id: string;
   orderId: string;
   vehicleId: string;
+  plateNumber?: string;
+  userId?: string;
   status: IncidentStatus;
   incidentType: string;
   location: string;
+  /** 事故发生时间 */
+  incidentAt?: string;
   reportedAt: string;
+  reporterPhone?: string;
+  description?: string;
+  hasInjury?: boolean;
+  policeReportNo?: string;
+  insuranceStatus?: InsuranceClaimStatus;
+  responsibleParty?: ViolationResponsibleParty;
+  serviceContext?: ViolationServiceContext;
+  vehicleHold?: boolean;
   handlerId?: string;
   estimatedCost: number;
   pauseBilling: boolean;
+};
+
+export type CreateIncidentReportRequest = {
+  orderId: string;
+  incidentAt: string;
+  location: string;
+  incidentType: string;
+  reporterPhone: string;
+  description?: string;
+  hasInjury?: boolean;
+  policeReportNo?: string;
+  vehicleHold?: boolean;
+  pauseBilling?: boolean;
+};
+
+export type UserIncidentView = Incident & {
+  orderNo?: string;
+  statusLabel: string;
+  serviceContextLabel: string;
+  responsiblePartyLabel: string;
+  insuranceStatusLabel?: string;
+};
+
+export type UserIncidentSummary = {
+  total: number;
+  open: number;
+  pauseBillingCount: number;
+};
+
+export type IncidentDetailRelations = {
+  orderHref: string;
+  vehicleHref: string | null;
+  userHref: string | null;
+};
+
+export type IncidentDetail = {
+  incident: UserIncidentView;
+  order: {
+    id: string;
+    orderNo: string;
+    status: OrderStatus;
+    serviceMode: ServiceMode;
+    pickupTime: string;
+    returnTime: string;
+    incidentPending?: boolean;
+  } | null;
+  vehicle: {
+    id: string;
+    plateNumber: string;
+    brand: string;
+    model: string;
+    status: VehicleStatus;
+  } | null;
+  user: {
+    id: string;
+    realName: string;
+    phone: string;
+  } | null;
+  relatedTickets: Array<{
+    id: string;
+    ticketNo: string;
+    subject: string;
+    status: ServiceTicket["status"];
+    priority: ServiceTicket["priority"];
+    createdAt: string;
+  }>;
+  relations: IncidentDetailRelations;
 };
 
 export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED";
@@ -609,12 +701,45 @@ export type ViolationBatchTask = {
   resultSummary?: ViolationBatchResultSummary;
 };
 
+/** 违章发生时的服务场景（与订单 serviceMode 对齐，租期外为 OUTSIDE_RENTAL） */
+export type ViolationServiceContext =
+  | "SELF_DRIVE"
+  | "WITH_DRIVER"
+  | "MIXED"
+  | "OUTSIDE_RENTAL";
+
+/** 责任主体（用户驾车违章规则） */
+export type ViolationResponsibleParty =
+  | "RENTER"
+  | "ENTERPRISE"
+  | "PLATFORM_DRIVER"
+  | "UNKNOWN";
+
+/** 对客追责与结算状态 */
+export type ViolationLiabilityStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "BILLED"
+  | "SETTLED"
+  | "WAIVED";
+
 export type ViolationRecord = {
   id: string;
   vehicleId: string;
   plateNumber: string;
   /** 包车服务期间可归因司机（运营手工或系统推断） */
   driverId?: string;
+  /** 关联订单（租期内自动匹配） */
+  orderId?: string;
+  /** 下单用户 / 承租人（对客展示与追缴） */
+  userId?: string;
+  responsibleParty?: ViolationResponsibleParty;
+  serviceContext?: ViolationServiceContext;
+  liabilityStatus?: ViolationLiabilityStatus;
+  /** 平台代办服务费（演示默认 50 元） */
+  serviceFee?: number;
+  /** 违章行为描述 */
+  behavior?: string;
   violationTime: string;
   location: string;
   fineAmount: number;
@@ -628,6 +753,14 @@ export type ViolationRecord = {
   processedAt?: string;
   processedBy?: string;
   remark?: string;
+};
+
+export type UserViolationView = ViolationRecord & {
+  orderNo?: string;
+  responsiblePartyLabel: string;
+  liabilityStatusLabel: string;
+  serviceContextLabel: string;
+  totalDue: number;
 };
 
 export type ViolationSummary = {
@@ -707,12 +840,15 @@ export type AccountContext = {
     status: OrgAccountStatus;
     creditLimit: number;
     usedAmount: number;
+    contactName: string;
+    contactPhone: string;
   };
   member?: {
     id: string;
     status: OrgMemberStatus;
     departmentName: string;
     roleCodes: string[];
+    contactPhone?: string;
   };
 };
 

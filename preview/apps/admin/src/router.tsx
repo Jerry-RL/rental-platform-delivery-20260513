@@ -4,6 +4,7 @@ import { ProtectedLayout } from "./components/layout/ProtectedLayout";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ExtensionsPage } from "./pages/ExtensionsPage";
 import { FinancePage } from "./pages/FinancePage";
+import { IncidentDetailPage } from "./pages/IncidentDetailPage";
 import { IncidentsPage } from "./pages/IncidentsPage";
 import { InvoicesPage } from "./pages/InvoicesPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
               { path: "orders/:orderId", element: <OrderDetailPage /> },
               { path: "pricing", element: <PricingPage /> },
               { path: "incidents", element: <IncidentsPage /> },
+              { path: "incidents/:incidentId", element: <IncidentDetailPage /> },
               { path: "payments", element: <PaymentsPage /> },
               { path: "finance", element: <FinancePage /> },
               { path: "invoices", element: <InvoicesPage /> },

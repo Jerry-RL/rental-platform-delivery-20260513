@@ -15,13 +15,14 @@ import {
   type PageResult
 } from "@rental-preview/shared";
 import { AccountAuthBanner } from "../components/AccountAuthBanner";
+import { OrgAuthContactSection } from "../components/OrgAuthContactSection";
 import { useAccountContext } from "../hooks/useAccountContext";
 import { useReorder } from "../hooks/useReorder";
 
 export function MePage() {
   const navigate = useNavigate();
   const userId = getPreviewUserId();
-  const { user, account } = useAccountContext();
+  const { user, account, refresh } = useAccountContext();
   const { reorder, reordering } = useReorder();
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
 
@@ -72,10 +73,17 @@ export function MePage() {
       show: true
     },
     {
-      title: "违章提醒",
-      desc: "批量查询结果推送",
+      title: "我的违章",
+      desc: "租期关联 · 罚款与代办费",
       fr: "FR-EXT-001",
-      path: null,
+      path: "/violations",
+      show: true
+    },
+    {
+      title: "我的事故",
+      desc: "租期上报 · 暂停计费",
+      fr: "FR-ORD-008",
+      path: "/incidents",
       show: true
     },
     {
@@ -143,6 +151,11 @@ export function MePage() {
             授信 {formatMoney(account.org.creditLimit)} · 已用{" "}
             {formatMoney(account.org.usedAmount)}
           </p>
+          <OrgAuthContactSection
+            account={account}
+            loginPhone={user?.phone}
+            onSaved={() => void refresh()}
+          />
         </section>
       )}
 

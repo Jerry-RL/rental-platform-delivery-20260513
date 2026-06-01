@@ -25,6 +25,7 @@
 |---|---|
 | `POST /api/v1/users/login` | 返回 `account`（segment、认证状态） |
 | `GET /api/v1/users/me` | 当前用户 + `AccountContext` |
+| `PUT /api/v1/users/me/org-contact` | B/G 成员保存审批联系电话 `{ contactPhone }` |
 | `GET /api/v1/users/:id/eligibility` | 合并 B/G 认证与驾照资格 |
 | `POST /api/v1/orders/quote`、`POST /api/v1/orders` | B/G 未认证返回 **3006** / **3002** |
 
@@ -32,6 +33,7 @@
 
 - 顶栏展示 `segmentLabel`（如 B端企业 · 待认证）
 - `AccountAuthBanner`：首页 / 下单 / 我的
+- **我的 → 企业账号认证**：展示 **租车公司客服 400-888-6688**（`RENTAL_COMPANY_CONTACT`）；可另填「您的联系电话」供回电；展示所属企业对接人电话
 - 未认证：禁止加入租车篮、去结算、提交订单
 
 ## 演示账号

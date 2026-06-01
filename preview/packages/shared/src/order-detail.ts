@@ -7,7 +7,6 @@ import {
 import { resolveVehicleImageUrl, vehicleImageSeed } from "./vehicle-images";
 import type {
   Driver,
-  Incident,
   Invoice,
   Order,
   OrderFeeDetail,
@@ -18,8 +17,12 @@ import type {
   ServiceTicket,
   Store,
   User,
+  UserIncidentView,
+  UserViolationView,
   Vehicle
 } from "./types";
+import { listOrderIncidents } from "./incident-rules";
+import { listOrderViolations } from "./violation-attribution";
 
 export type OrderDetailRelations = {
   userId: string | null;
@@ -46,9 +49,10 @@ export type OrderDetail = {
   pricingRule: PricingRule | null;
   payments: Payment[];
   refunds: Refund[];
-  incidents: Incident[];
+  incidents: UserIncidentView[];
   tickets: ServiceTicket[];
   invoices: Invoice[];
+  violations: UserViolationView[];
 };
 
 const synthesizeFeeDetails = (order: Order): OrderFeeDetail[] => {
@@ -186,8 +190,9 @@ export const buildOrderDetail = (store: PreviewStore, orderId: string): OrderDet
     pricingRule,
     payments: store.payments.filter((p) => p.orderId === orderId),
     refunds: store.refunds.filter((r) => r.orderId === orderId),
-    incidents: store.incidents.filter((i) => i.orderId === orderId),
+    incidents: listOrderIncidents(store, orderId),
     tickets: store.tickets.filter((t) => t.orderId === orderId),
-    invoices: store.invoices.filter((inv) => inv.orderId === orderId)
+    invoices: store.invoices.filter((inv) => inv.orderId === orderId),
+    violations: listOrderViolations(store, orderId)
   };
 };

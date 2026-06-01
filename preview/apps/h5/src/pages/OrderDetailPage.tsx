@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   api,
   accountTypeLabel,
@@ -20,6 +20,7 @@ import {
   serviceModeLabel,
   settlementModeLabel,
   ticketStatusLabel,
+  violationPaymentStatusLabel,
   vehicleStatusLabel,
   type Order,
   type OrderDetail
@@ -88,9 +89,9 @@ export function OrderDetailPage() {
     void load();
   };
 
-  const handleIncident = async () => {
+  const handleReportIncident = () => {
     if (!detail) return;
-    alert("事故已上报（演示）· 将创建高优先级工单");
+    navigate(`/orders/${detail.order.id}/report-incident`);
   };
 
   const handleInvoice = async () => {
@@ -274,14 +275,68 @@ export function OrderDetailPage() {
         </Section>
       )}
 
+      {detail.violations.length > 0 && (
+        <Section title="关联违章">
+          {detail.violations.map((v) => (
+            <div key={v.id} className="space-y-1 border-t border-border pt-2 first:border-0 first:pt-0">
+              <Line label="行为" value={v.behavior ?? v.violationCode} />
+              <Line label="时间" value={fmtTime(v.violationTime)} />
+              <Line label="罚款" value={formatMoney(v.fineAmount)} />
+              <Line label="应付" value={formatMoney(v.totalDue)} />
+              <Line label="责任" value={v.responsiblePartyLabel} />
+              <Line label="缴款" value={violationPaymentStatusLabel[v.status]} />
+              <Line label="追责" value={v.liabilityStatusLabel} />
+            </div>
+          ))}
+          <button
+            type="button"
+            className="mt-2 text-xs text-primary"
+            onClick={() => navigate("/violations")}
+          >
+            查看全部违章 →
+          </button>
+        </Section>
+      )}
+
+      {detail.order.status === "IN_USE" && (
+        <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-sm">
+          <p className="font-medium text-warning">自驾用车发生事故？</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            请立即上报并保留现场照片；租期违章请至「我的违章」查看。
+          </p>
+          <button
+            type="button"
+            className="mt-2 w-full rounded-lg bg-warning py-2 text-xs font-medium text-warning-foreground"
+            onClick={handleReportIncident}
+          >
+            上报租期事故
+          </button>
+        </div>
+      )}
+
       {(detail.incidents.length > 0 || detail.tickets.length > 0) && (
         <Section title="事故 / 工单">
           {detail.incidents.map((inc) => (
-            <div key={inc.id}>
-              <Line label="事故" value={inc.incidentType} />
-              <Line label="状态" value={incidentStatusLabel[inc.status]} />
+            <div key={inc.id} className="space-y-1 border-t border-border pt-2 first:border-0 first:pt-0">
+              <Line label="类型" value={inc.incidentType} />
+              <Line label="状态" value={inc.statusLabel} />
+              <Line label="责任" value={inc.responsiblePartyLabel} />
+              {inc.pauseBilling && <Line label="计费" value="已暂停" />}
+              {inc.estimatedCost > 0 && (
+                <Line label="预估" value={formatMoney(inc.estimatedCost)} />
+              )}
+              <Link to={`/incidents/${inc.id}`} className="text-xs text-primary">
+                查看详情 →
+              </Link>
             </div>
           ))}
+          <button
+            type="button"
+            className="mt-2 text-xs text-primary"
+            onClick={() => navigate("/incidents")}
+          >
+            查看全部事故 →
+          </button>
           {detail.tickets.map((t) => (
             <Line key={t.id} label={t.ticketNo} value={ticketStatusLabel[t.status]} />
           ))}
@@ -311,7 +366,7 @@ export function OrderDetailPage() {
               onPay={() => void handlePay()}
               onConfirmPickup={() => void handleConfirmPickup(order)}
               onInvoice={() => void handleInvoice()}
-              onIncident={() => void handleIncident()}
+              onIncident={handleReportIncident}
             />
           </>
         )}

@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import {
   api,
   driverStatusLabel,
+  violationHandleStatusLabel,
+  violationPaymentStatusLabel,
   type DriverAdminProfile,
   type DriverOrderHistoryItem,
-  type DriverViolationItem
+  type UserViolationView
 } from "@rental-preview/shared";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -64,7 +66,7 @@ const orderColumns: Column<DriverOrderHistoryItem>[] = [
   }
 ];
 
-const violationColumns: Column<DriverViolationItem>[] = [
+const violationColumns: Column<UserViolationView>[] = [
   {
     key: "time",
     header: "违章时间",
@@ -85,34 +87,34 @@ const violationColumns: Column<DriverViolationItem>[] = [
     key: "pay",
     header: "缴款",
     render: (r) => (
-      <Badge variant={r.status === "UNPAID" ? "warning" : "secondary"}>{r.paymentLabel}</Badge>
+      <Badge variant={r.status === "UNPAID" ? "warning" : "secondary"}>
+        {violationPaymentStatusLabel[r.status]}
+      </Badge>
     )
   },
   {
     key: "handle",
     header: "处理",
-    render: (r) => <Badge variant="outline">{r.handleLabel}</Badge>
+    render: (r) => (
+      <Badge variant="outline">{violationHandleStatusLabel[r.handleStatus]}</Badge>
+    )
+  },
+  {
+    key: "party",
+    header: "责任",
+    render: (r) => r.responsiblePartyLabel
   },
   {
     key: "order",
     header: "关联订单",
     render: (r) =>
-      r.relatedOrderId ? (
-        <Link to={`/orders/${r.relatedOrderId}`} className="text-primary hover:underline">
-          {r.relatedOrderNo ?? "查看"}
+      r.orderId ? (
+        <Link to={`/orders/${r.orderId}`} className="text-primary hover:underline">
+          {r.orderNo ?? "查看"}
         </Link>
       ) : (
         <span className="text-muted-foreground">—</span>
       )
-  },
-  {
-    key: "attr",
-    header: "归因",
-    render: (r) => (
-      <span className="text-xs text-muted-foreground">
-        {r.attribution === "EXPLICIT" ? "明确归属" : "租期内推断"}
-      </span>
-    )
   }
 ];
 
@@ -229,7 +231,7 @@ export function DriverProfilePanel({ driverId }: DriverProfilePanelProps) {
           <div>
             <h3 className="text-sm font-medium">违章情况</h3>
             <p className="text-xs text-muted-foreground">
-              含明确归属司机记录，以及包车租期内同车违章推断
+              包车租期内、责任主体为平台司机的违章记录
             </p>
           </div>
           <Link

@@ -111,13 +111,16 @@ export const resolveAccountContext = (store: PreviewStore, userId: string): Acco
       accountType: org.accountType,
       status: org.status,
       creditLimit: org.creditLimit,
-      usedAmount: org.usedAmount
+      usedAmount: org.usedAmount,
+      contactName: org.contactName,
+      contactPhone: org.contactPhone
     },
     member: {
       id: member.id,
       status: member.status,
       departmentName: member.departmentName,
-      roleCodes: member.roleCodes
+      roleCodes: member.roleCodes,
+      contactPhone: member.contactPhone
     }
   };
 };

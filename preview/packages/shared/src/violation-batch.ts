@@ -74,6 +74,9 @@ export type ViolationListQuery = {
   handleStatus?: string;
   paymentStatus?: string;
   vehicleId?: string;
+  userId?: string;
+  orderId?: string;
+  responsibleParty?: string;
 };
 
 export const filterViolations = (
